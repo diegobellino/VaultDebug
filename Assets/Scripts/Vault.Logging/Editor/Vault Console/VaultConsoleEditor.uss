@@ -5,7 +5,10 @@
     border-bottom-color: rgb(41, 40, 40);
     padding-bottom: 0;
     margin-bottom: 0;
-    min-height: 23px;
+    height: 30px;
+    align-items: center;
+    min-height: 30px;
+    padding-right: 20px;
 }
 
 .toolbar .searchbar {
@@ -16,6 +19,37 @@
     padding-bottom: 0;
     margin-right: 60px;
     margin-left: 60px;
+}
+
+.toolbar-button {
+    flex-direction: row;
+    justify-content: center;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    width: 25px;
+    align-items: center;
+    border-left-color: rgba(41, 40, 40, 255);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    flex-shrink: 0.5;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-right-color: rgba(41, 40, 40, 255);
+    border-top-color: rgba(41, 40, 40, 255);
+    border-bottom-color: rgba(41, 40, 40, 255);
+    height: 25px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.toolbar-button:hover {
+    background-color: rgb(84, 78, 78);
 }
 
 .log-view {
@@ -56,10 +90,10 @@
     border-right-width: 2px;
     border-top-width: 2px;
     border-bottom-width: 2px;
-    border-left-color: rgba(93, 147, 188, 255);
-    border-right-color: rgba(93, 147, 188, 255);
-    border-top-color: rgba(93, 147, 188, 255);
-    border-bottom-color: rgba(93, 147, 188, 255);
+    border-left-color: rgb(93, 147, 188);
+    border-right-color: rgb(93, 147, 188);
+    border-top-color: rgb(93, 147, 188);
+    border-bottom-color: rgb(93, 147, 188);
 }
 
 .log-text {
@@ -105,24 +139,6 @@
     background-color: rgb(105, 185, 94);
 }
 
-.toolbar-button {
-    flex-direction: row;
-    justify-content: center;
-    font-size: 12px;
-    -unity-text-align: middle-center;
-    width: auto;
-    align-items: center;
-    border-left-color: rgb(41, 40, 40);
-    border-left-width: 1px;
-    border-right-width: 0;
-    flex-shrink: 0.5;
-    min-width: 30px;
-}
-
-.toolbar-button:hover {
-    background-color: rgb(84, 78, 78);
-}
-
 .active {
     background-color: rgba(104, 156, 195, 0.55);
 }
@@ -160,10 +176,10 @@
     border-right-width: 2px;
     border-top-width: 2px;
     border-bottom-width: 2px;
-    border-left-color: rgba(29, 28, 28, 255);
-    border-right-color: rgba(29, 28, 28, 255);
-    border-top-color: rgba(29, 28, 28, 255);
-    border-bottom-color: rgba(29, 28, 28, 255);
+    border-left-color: rgb(29, 28, 28);
+    border-right-color: rgb(29, 28, 28);
+    border-top-color: rgb(29, 28, 28);
+    border-bottom-color: rgb(29, 28, 28);
 }
 
 .hide-button:hover {

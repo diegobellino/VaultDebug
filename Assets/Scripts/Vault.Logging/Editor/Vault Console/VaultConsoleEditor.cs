@@ -56,6 +56,8 @@ namespace Vault.Logging.Editor.VaultConsole
 
         static VaultLogger Logger = VaultLoggerFactory.GetOrCreateLogger("VAULT CONSOLE");
 
+        VisualElement _focusedLog;
+
         #endregion
 
         [MenuItem("Vault/Vault Console")]
@@ -175,6 +177,13 @@ namespace Vault.Logging.Editor.VaultConsole
         {
             _detailsView.style.minHeight = isOn ? new Length(60, LengthUnit.Percent) : 0;
             _detailsView.style.visibility = isOn ? Visibility.Visible : Visibility.Hidden;
+
+            if (!isOn && _focusedLog != null)
+            {
+                _focusedLog.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
+                _focusedLog = null;
+            }
+
             _detailsView.MarkDirtyRepaint();
             _mainView.MarkDirtyRepaint();
         }
@@ -280,6 +289,14 @@ namespace Vault.Logging.Editor.VaultConsole
             logElement.AddManipulator(
                 new Clickable(() => 
                 {
+                    if (_focusedLog != null)
+                    {
+                        _focusedLog.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
+                    }
+
+                    _focusedLog = logElement;
+                    _focusedLog.AddToClassList(ACTIVE_ELEMENT_CLASS_NAME);
+
                     OnLogSelected(log); 
                 }));
 
