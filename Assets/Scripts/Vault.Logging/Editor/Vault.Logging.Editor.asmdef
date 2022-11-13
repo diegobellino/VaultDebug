@@ -1,0 +1,19 @@
+{
+    "name": "Vault.Logging.Editor",
+    "rootNamespace": "Vault.Logging.Editor",
+    "references": [
+        "GUID:30eed4525cba07f4a8b2db6adab4171f",
+        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
