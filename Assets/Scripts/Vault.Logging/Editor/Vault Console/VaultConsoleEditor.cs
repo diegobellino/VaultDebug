@@ -57,6 +57,7 @@ namespace Vault.Logging.Editor.VaultConsole
         static VaultLogger Logger = VaultLoggerFactory.GetOrCreateLogger("VAULT CONSOLE");
 
         VisualElement _focusedLog;
+        ScrollView _logView;
 
         #endregion
 
@@ -107,10 +108,10 @@ namespace Vault.Logging.Editor.VaultConsole
             _mainView = new VisualElement();
             _mainView.AddToClassList(MAIN_VIEW_CLASS_NAME);
 
-            var logView = new ScrollView();
-            logView.AddToClassList(LOG_VIEW_CLASS_NAME);
+            _logView  = new ScrollView();
+            _logView.AddToClassList(LOG_VIEW_CLASS_NAME);
 
-            _mainView.Add(logView);
+            _mainView.Add(_logView);
 
             _visualTree.Add(_mainView);
         }
@@ -178,9 +179,9 @@ namespace Vault.Logging.Editor.VaultConsole
             _detailsView.style.minHeight = isOn ? new Length(60, LengthUnit.Percent) : 0;
             _detailsView.style.visibility = isOn ? Visibility.Visible : Visibility.Hidden;
 
-            if (!isOn && _focusedLog != null)
+            if (!isOn)
             {
-                _focusedLog.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
+                _focusedLog?.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
                 _focusedLog = null;
             }
 
