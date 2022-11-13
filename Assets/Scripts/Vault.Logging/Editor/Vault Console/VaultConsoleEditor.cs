@@ -121,13 +121,11 @@ namespace Vault.Logging.Editor.VaultConsole
 
             var hideButton = new Button(() =>
             {
-                _detailsView.style.minHeight = 0;
-                _detailsView.style.visibility = Visibility.Hidden;
-                _detailsView.MarkDirtyRepaint();
-                _mainView.MarkDirtyRepaint();
+                TriggerDetailsViewVisibility(false);
             });
             hideButton.AddToClassList(HIDE_BUTTON_CLASS_NAME);
-            char downArrow = '\u25BC';
+            // Unicode char for down triangle
+            var downArrow = '\u25BC';
             var hideLabel = new Label(downArrow.ToString());
 
             hideButton.Add(hideLabel);
@@ -171,6 +169,14 @@ namespace Vault.Logging.Editor.VaultConsole
             button.Add(new Label(label));
 
             return button;
+        }
+
+        void TriggerDetailsViewVisibility(bool isOn)
+        {
+            _detailsView.style.minHeight = isOn ? new Length(60, LengthUnit.Percent) : 0;
+            _detailsView.style.visibility = isOn ? Visibility.Visible : Visibility.Hidden;
+            _detailsView.MarkDirtyRepaint();
+            _mainView.MarkDirtyRepaint();
         }
 
         #endregion
@@ -284,10 +290,7 @@ namespace Vault.Logging.Editor.VaultConsole
         {
             var stackTrace = log.StackTrace;
 
-            _detailsView.style.minHeight = new Length(75, LengthUnit.Percent);
-            _detailsView.style.visibility = Visibility.Visible;
-            _detailsView.MarkDirtyRepaint();
-            _mainView.MarkDirtyRepaint();
+            TriggerDetailsViewVisibility(true);
         }
 
         #endregion
