@@ -75,10 +75,9 @@ namespace Vault.Logging.Editor.VaultConsole
             _visualTree = visualTree.Instantiate();
             _visualTree.style.height = new StyleLength(Length.Percent(100));
 
-            CreateToolbar();
-            CreateMainView();
-            CreateDetailsView();
-            CreateLogView();
+            AddToolbarToTree();
+            AddMainViewToTree();
+            AddDetailsViewToTree();
 
             RefreshFilters();
 
@@ -101,14 +100,20 @@ namespace Vault.Logging.Editor.VaultConsole
 
         #region VIEWS
 
-        void CreateMainView()
+        void AddMainViewToTree()
         {
             _mainView = new VisualElement();
             _mainView.AddToClassList(MAIN_VIEW_CLASS_NAME);
+
+            var logView = new ScrollView();
+            logView.AddToClassList(LOG_VIEW_CLASS_NAME);
+
+            _mainView.Add(logView);
+
             _visualTree.Add(_mainView);
         }
 
-        void CreateDetailsView()
+        void AddDetailsViewToTree()
         {
             _detailsView = new VisualElement();
             _detailsView.AddToClassList(DETAILS_VIEW_CLASS_NAME);
@@ -117,6 +122,7 @@ namespace Vault.Logging.Editor.VaultConsole
             var hideButton = new Button(() =>
             {
                 _detailsView.style.minHeight = 0;
+                _detailsView.style.visibility = Visibility.Hidden;
                 _detailsView.MarkDirtyRepaint();
                 _mainView.MarkDirtyRepaint();
             });
@@ -129,7 +135,7 @@ namespace Vault.Logging.Editor.VaultConsole
             _visualTree.Add(_detailsView);
         }
 
-        void CreateToolbar()
+        void AddToolbarToTree()
         {
             _filterButtons.Clear();
             // Get parent element
@@ -153,14 +159,6 @@ namespace Vault.Logging.Editor.VaultConsole
             toolbar.Add(searchbar);
 
             _visualTree.Add(toolbar);
-        }
-
-        void CreateLogView()
-        {
-            var logView = new ScrollView();
-            logView.AddToClassList(LOG_VIEW_CLASS_NAME);
-
-            _mainView.Add(logView);
         }
 
         Button CreateToolbarButton(string name, string label, Action onClick)
@@ -222,7 +220,7 @@ namespace Vault.Logging.Editor.VaultConsole
 
             foreach (var log in filteredLogs)
             {
-                var logElement = GetLogElement(log, isEven);
+                var logElement = CreateLogVisualElement(log, isEven);
 
                 logContainer.Add(logElement);
 
@@ -232,7 +230,7 @@ namespace Vault.Logging.Editor.VaultConsole
             _visualTree.MarkDirtyRepaint();
         }
 
-        VisualElement GetLogElement(VaultLog log, bool isEven)
+        VisualElement CreateLogVisualElement(VaultLog log, bool isEven)
         {
             var logElement = new VisualElement();
 
@@ -286,7 +284,8 @@ namespace Vault.Logging.Editor.VaultConsole
         {
             var stackTrace = log.StackTrace;
 
-            _detailsView.style.minHeight = new Length(70, LengthUnit.Percent);
+            _detailsView.style.minHeight = new Length(75, LengthUnit.Percent);
+            _detailsView.style.visibility = Visibility.Visible;
             _detailsView.MarkDirtyRepaint();
             _mainView.MarkDirtyRepaint();
         }
