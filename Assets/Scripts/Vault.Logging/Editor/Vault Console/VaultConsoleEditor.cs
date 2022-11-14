@@ -59,15 +59,15 @@ namespace Vault.Logging.Editor.VaultConsole
         VisualElement _focusedLog;
         ScrollView _logView;
 
-
+        int count = 0;
 
         #endregion
 
         [MenuItem("Vault/Vault Console")]
         public static void CreateWindow()
         {
-            VaultConsoleEditor wnd = GetWindow<VaultConsoleEditor>();
-            wnd.titleContent = new GUIContent("Vault Console");
+            var window = GetWindow<VaultConsoleEditor>();
+            window.titleContent = new GUIContent("Vault Console");
         }
     
         void CreateGUI()
@@ -87,20 +87,33 @@ namespace Vault.Logging.Editor.VaultConsole
             RefreshFilters();
 
             root.Add(_visualTree);
-
-            for (int i = 0; i < 5; i++)
-            {
-                Logger.Debug("This is a debug log");
-                Logger.Info("This is an info log");
-                Logger.Warn("This is a warn");
-                Logger.Error("This is an error");
-            }
         }
 
         void OnDestroy()
         {
             _logHandler.UnregisterListener(this);
             _logHandler.Dispose();
+        }
+
+        // Executes 10 times per second
+        void OnInspectorUpdate()
+        {
+            if (count < 5)
+            {
+                count++;
+            }
+            else
+            {
+                count = 0;
+                Logger.Info("This is an info log");
+            }
+
+            if (focusedWindow != this)
+            {
+                _logView.scrollOffset = Vector2.up * float.MaxValue;
+            }
+
+            Repaint();
         }
 
         #region VIEWS
@@ -121,13 +134,15 @@ namespace Vault.Logging.Editor.VaultConsole
         {
             _detailsView = new VisualElement();
             _detailsView.AddToClassList(DETAILS_VIEW_CLASS_NAME);
-            _detailsView.AddToClassList(HIDE_ELEMENT_CLASS_NAME);
+
+            TriggerDetailsViewVisibility(false);
 
             var hideButton = new Button(() =>
             {
                 TriggerDetailsViewVisibility(false);
             });
             hideButton.AddToClassList(HIDE_BUTTON_CLASS_NAME);
+
             // Unicode char for down triangle
             var downArrow = '\u25BC';
             var hideLabel = new Label(downArrow.ToString());
@@ -185,9 +200,6 @@ namespace Vault.Logging.Editor.VaultConsole
                 _focusedLog?.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
                 _focusedLog = null;
             }
-
-            _detailsView.MarkDirtyRepaint();
-            _mainView.MarkDirtyRepaint();
         }
 
         #endregion
@@ -220,7 +232,6 @@ namespace Vault.Logging.Editor.VaultConsole
             }
 
             RefreshLogs();
-            _visualTree.MarkDirtyRepaint();
         }
 
         #endregion
@@ -243,8 +254,6 @@ namespace Vault.Logging.Editor.VaultConsole
 
                 isEven = !isEven;
             }
-
-            _visualTree.MarkDirtyRepaint();
         }
 
         VisualElement CreateLogVisualElement(VaultLog log, bool isEven)
@@ -316,7 +325,6 @@ namespace Vault.Logging.Editor.VaultConsole
             EditorApplication.delayCall += () =>
             {
                 _logView.ScrollTo(_focusedLog);
-                _logView.MarkDirtyRepaint();
             };            
         }
 
