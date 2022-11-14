@@ -59,6 +59,8 @@ namespace Vault.Logging.Editor.VaultConsole
         VisualElement _focusedLog;
         ScrollView _logView;
 
+
+
         #endregion
 
         [MenuItem("Vault/Vault Console")]
@@ -112,7 +114,6 @@ namespace Vault.Logging.Editor.VaultConsole
             _logView.AddToClassList(LOG_VIEW_CLASS_NAME);
 
             _mainView.Add(_logView);
-
             _visualTree.Add(_mainView);
         }
 
@@ -309,8 +310,17 @@ namespace Vault.Logging.Editor.VaultConsole
             var stackTrace = log.StackTrace;
 
             TriggerDetailsViewVisibility(true);
+
+            // delayCall executes after all inspectors have been updated. Must be delayed to let detailsView accomodate to new height before scrolling
+            // to element
+            EditorApplication.delayCall += () =>
+            {
+                _logView.ScrollTo(_focusedLog);
+                _logView.MarkDirtyRepaint();
+            };            
         }
 
         #endregion
+
     }
 }
