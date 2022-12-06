@@ -18,8 +18,10 @@ namespace Vault.Logging.Editor.VaultConsole
         public Action OnLogsChanged;
 
         LogLevel _activeFilters;
-        Queue<VaultLog> _logQueue = new();
+        Dictionary<int, VaultLog> _allLogsById = new();
         List<IVaultLogListener> _listeners = new();
+
+        int _logCount;
 
         #endregion
 
@@ -58,7 +60,8 @@ namespace Vault.Logging.Editor.VaultConsole
 
         public void HandleVaultLog(VaultLog log)
         {
-            _logQueue.Enqueue(log);
+            _allLogsById.Add(_logCount, log);
+            _logCount++;
             RefreshListeners();
         }
 
@@ -80,7 +83,8 @@ namespace Vault.Logging.Editor.VaultConsole
             }
 
             var log = new VaultLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
-            _logQueue.Enqueue(log);
+            _allLogsById.Add(_logCount, log);
+            _logCount++;
 
             RefreshListeners();
         }
@@ -104,24 +108,28 @@ namespace Vault.Logging.Editor.VaultConsole
                 var message = matchedGroups[3].ToString();
 
                 var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, path + $"(line {line})");
-                _logQueue.Enqueue(log);
+                _allLogsById.Add(_logCount, log);
+                _logCount++;
             }
 
             RefreshListeners();
         }
 
-        public List<VaultLog> GetLogsFiltered()
+        public Dictionary<int, VaultLog> GetLogsFiltered()
         {
-            var filteredLogs = new List<VaultLog>();
+            var filteredLogs = new Dictionary<int, VaultLog>();
 
-            foreach(var log in _logQueue)
+            foreach(var kvp in _allLogsById)
             {
+                var id = kvp.Key;
+                var log = kvp.Value;
+
                 if (!IsFilterActive(log.Level))
                 {
                     continue;
                 }
                 
-                filteredLogs.Add(log);
+                filteredLogs.Add(id, log);
             }
 
             return filteredLogs;
@@ -129,7 +137,7 @@ namespace Vault.Logging.Editor.VaultConsole
 
         void ClearLogs()
         {
-            _logQueue.Clear();
+            _allLogsById.Clear();
             RefreshListeners();
         }
 
@@ -199,8 +207,8 @@ namespace Vault.Logging.Editor.VaultConsole
     
                 VaultLogDispatcher.Instance.UnregisterHandler(this);
 
-                _logQueue.Clear();
-                _logQueue = null;
+                _allLogsById.Clear();
+                _allLogsById = null;
             }
         }
 

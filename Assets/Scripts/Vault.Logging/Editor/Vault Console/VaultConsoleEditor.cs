@@ -5,6 +5,7 @@ using UnityEditor.UIElements;
 using System;
 using Vault.Logging.Runtime;
 using System.Collections.Generic;
+using Elements = Vault.Logging.Editor.VaultConsoleElements;
 
 namespace Vault.Logging.Editor.VaultConsole
 {
@@ -13,38 +14,6 @@ namespace Vault.Logging.Editor.VaultConsole
         #region VARIABLES
 
         const string BASE_PATH = "Assets/Scripts/Vault.Logging/Editor/Vault Console/";
-
-        const string UNITY_BUTTON_CLASS_NAME = "unity-button";
-
-        const string ACTIVE_ELEMENT_CLASS_NAME = "active";
-        const string HIDE_ELEMENT_CLASS_NAME = "hidden";
-
-        const string TOOLBAR_CLASS_NAME = "toolbar";
-        const string TOOLBAR_BUTTON_CLASS_NAME = "toolbar-button";
-
-        const string ERROR_BUTTON_CLASS_NAME = "error-button";
-        const string WARNING_BUTTON_CLASS_NAME = "warning-button";
-        const string DEBUG_BUTTON_CLASS_NAME = "debug-button";
-        const string INFO_BUTTON_CLASS_NAME = "info-button";
-        const string HIDE_BUTTON_CLASS_NAME = "hide-button";
-
-        const string SEARCHBAR_CLASS_NAME = "searchbar";
-
-        const string LOG_VIEW_CLASS_NAME = "log-view";
-        const string LOG_ELEMENT_CLASS_NAME = "log-element";
-        const string LOG_ELEMENT_EVEN_CLASS_NAME = "log-element-even";
-        const string LOG_ELEMENT_CRITICAL_CLASS_NAME = "log-element-critical";
-        const string LOG_TEXT_CLASS_NAME = "log-text";
-        const string LOG_ICON_CLASS_NAME = "log-icon";
-        
-        const string MAIN_VIEW_CLASS_NAME = "main-view";
-        const string DETAILS_VIEW_CLASS_NAME = "details-view";
-
-        const string ERROR_ICON_CLASS_NAME = "error-icon";
-        const string WARNING_ICON_CLASS_NAME = "warning-icon";
-        const string DEBUG_ICON_CLASS_NAME = "debug-icon";
-        const string INFO_ICON_CLASS_NAME = "info-icon";
-
         const string STACKTRACE_PATTERN = "[^\\n|\"].*?(?=\\n)";
 
         Dictionary<LogLevel, Button> _filterButtons = new();
@@ -52,14 +21,15 @@ namespace Vault.Logging.Editor.VaultConsole
         VisualElement _mainView;
         VisualElement _detailsView;
 
-        VaultConsoleLogHandler _logHandler = new();
+        readonly VaultConsoleLogHandler _logHandler = new();
 
         static VaultLogger Logger = VaultLoggerFactory.GetOrCreateLogger("VAULT CONSOLE");
 
-        VisualElement _focusedLog;
+        VisualElement _focusedLogElement;
         ScrollView _logView;
 
-        int count = 0;
+        int _count = 0;
+        int _selectedLogId = -1;
 
         #endregion
 
@@ -98,33 +68,33 @@ namespace Vault.Logging.Editor.VaultConsole
         // Executes 10 times per second
         void OnInspectorUpdate()
         {
-            if (count < 5)
+            if (_count < 10)
             {
-                count++;
+                _count++;
             }
             else
             {
-                count = 0;
+                _count = 0;
                 Logger.Info("This is an info log");
             }
 
+            // If window is unfocused, auto scroll to bottom and disable detail view
             if (focusedWindow != this)
             {
                 _logView.scrollOffset = Vector2.up * float.MaxValue;
+                TriggerDetailsViewVisibility(false);
             }
-
-            Repaint();
         }
 
-        #region VIEWS
+        #region VIEW
 
         void AddMainViewToTree()
         {
             _mainView = new VisualElement();
-            _mainView.AddToClassList(MAIN_VIEW_CLASS_NAME);
+            _mainView.AddToClassList(Elements.MAIN_VIEW_CLASS_NAME);
 
             _logView  = new ScrollView();
-            _logView.AddToClassList(LOG_VIEW_CLASS_NAME);
+            _logView.AddToClassList(Elements.LOG_VIEW_CLASS_NAME);
 
             _mainView.Add(_logView);
             _visualTree.Add(_mainView);
@@ -133,7 +103,7 @@ namespace Vault.Logging.Editor.VaultConsole
         void AddDetailsViewToTree()
         {
             _detailsView = new VisualElement();
-            _detailsView.AddToClassList(DETAILS_VIEW_CLASS_NAME);
+            _detailsView.AddToClassList(Elements.DETAILS_VIEW_CLASS_NAME);
 
             TriggerDetailsViewVisibility(false);
 
@@ -141,7 +111,7 @@ namespace Vault.Logging.Editor.VaultConsole
             {
                 TriggerDetailsViewVisibility(false);
             });
-            hideButton.AddToClassList(HIDE_BUTTON_CLASS_NAME);
+            hideButton.AddToClassList(Elements.HIDE_BUTTON_CLASS_NAME);
 
             // Unicode char for down triangle
             var downArrow = '\u25BC';
@@ -157,15 +127,15 @@ namespace Vault.Logging.Editor.VaultConsole
             _filterButtons.Clear();
             // Get parent element
             var toolbar = new VisualElement();
-            toolbar.AddToClassList(TOOLBAR_CLASS_NAME);
+            toolbar.AddToClassList(Elements.TOOLBAR_CLASS_NAME);
 
-            _filterButtons[LogLevel.Error] = CreateToolbarButton(ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
-            _filterButtons[LogLevel.Warn] = CreateToolbarButton(WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
-            _filterButtons[LogLevel.Debug] = CreateToolbarButton(DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
-            _filterButtons[LogLevel.Info] = CreateToolbarButton(INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); });
+            _filterButtons[LogLevel.Error] = CreateToolbarButton(Elements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
+            _filterButtons[LogLevel.Warn] = CreateToolbarButton(Elements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
+            _filterButtons[LogLevel.Debug] = CreateToolbarButton(Elements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
+            _filterButtons[LogLevel.Info] = CreateToolbarButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); });
 
             var searchbar = new ToolbarSearchField();
-            searchbar.AddToClassList(SEARCHBAR_CLASS_NAME);
+            searchbar.AddToClassList(Elements.SEARCHBAR_CLASS_NAME);
             searchbar.name = "searchbar";
 
             foreach(var button in _filterButtons.Values)
@@ -181,8 +151,8 @@ namespace Vault.Logging.Editor.VaultConsole
         Button CreateToolbarButton(string name, string label, Action onClick)
         {
             var button = new Button();
-            button.RemoveFromClassList(UNITY_BUTTON_CLASS_NAME);
-            button.AddToClassList(TOOLBAR_BUTTON_CLASS_NAME);
+            button.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
+            button.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
             button.clicked += onClick;
             button.name = name;
             button.Add(new Label(label));
@@ -197,9 +167,83 @@ namespace Vault.Logging.Editor.VaultConsole
 
             if (!isOn)
             {
-                _focusedLog?.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
-                _focusedLog = null;
+                _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                _focusedLogElement = null;
+                _selectedLogId = -1;
             }
+        }
+
+        VisualElement CreateLogVisualElement(VaultLog log, int id, bool isEven)
+        {
+            var logElement = new VisualElement();
+
+            logElement.AddToClassList(Elements.LOG_ELEMENT_CLASS_NAME);
+
+            if (log.Level == LogLevel.Exception)
+            {
+                logElement.AddToClassList(Elements.LOG_ELEMENT_CRITICAL_CLASS_NAME);
+            }
+            else if (isEven)
+            {
+                logElement.AddToClassList(Elements.LOG_ELEMENT_EVEN_CLASS_NAME);
+            }
+
+            var logIconClass = log.Level switch
+            {
+                LogLevel.Info => Elements.INFO_ICON_CLASS_NAME,
+                LogLevel.Debug => Elements.DEBUG_ICON_CLASS_NAME,
+                LogLevel.Warn => Elements.WARNING_ICON_CLASS_NAME,
+                LogLevel.Error or LogLevel.Exception => Elements.ERROR_ICON_CLASS_NAME,
+                _ => Elements.INFO_ICON_CLASS_NAME
+            };
+
+            var logIconLabel = log.Level switch
+            {
+                LogLevel.Info => new Label("I"),
+                LogLevel.Debug => new Label("D"),
+                LogLevel.Warn => new Label("W"),
+                LogLevel.Error or LogLevel.Exception => new Label("E"),
+                _ => new Label("I")
+            };
+            logIconLabel.AddToClassList(Elements.LOG_ICON_CLASS_NAME);
+            logIconLabel.AddToClassList(logIconClass);
+
+            var logMessageLabel = new Label($"[{log.Context}] {log.Message}");
+            logMessageLabel.AddToClassList(Elements.LOG_TEXT_CLASS_NAME);
+
+            if (id == _selectedLogId)
+            {
+                logElement.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                _focusedLogElement = logElement;
+            }
+
+            logElement.Add(logIconLabel);
+            logElement.Add(logMessageLabel);
+            logElement.AddManipulator(
+                new Clickable(() =>
+                {
+                    _selectedLogId = id;
+                    _focusedLogElement = logElement;
+                    _focusedLogElement.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+
+                    OnLogSelected(log);
+                }));
+
+            return logElement;
+        }
+
+        void OnLogSelected(VaultLog log)
+        {
+            var stackTrace = log.StackTrace;
+
+            TriggerDetailsViewVisibility(true);
+
+            // delayCall executes after all inspectors have been updated. Must be delayed to let detailsView accomodate to new height before scrolling
+            // to element
+            EditorApplication.delayCall += () =>
+            {
+                _logView.ScrollTo(_focusedLogElement);
+            };
         }
 
         #endregion
@@ -223,11 +267,11 @@ namespace Vault.Logging.Editor.VaultConsole
             {
                 if (_logHandler.IsFilterActive(level))
                 {
-                    _filterButtons[level].AddToClassList(ACTIVE_ELEMENT_CLASS_NAME);
+                    _filterButtons[level].AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 }
                 else
                 {
-                    _filterButtons[level].RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
+                    _filterButtons[level].RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 }
             }
 
@@ -240,92 +284,23 @@ namespace Vault.Logging.Editor.VaultConsole
 
         public void RefreshLogs()
         {
-            var logContainer = _mainView.Q(classes: LOG_VIEW_CLASS_NAME);
+            var logContainer = _mainView.Q(classes: Elements.LOG_VIEW_CLASS_NAME);
             logContainer.Clear();
 
             var isEven = false;
             var filteredLogs = _logHandler.GetLogsFiltered();
 
-            foreach (var log in filteredLogs)
+            foreach (var kvp in filteredLogs)
             {
-                var logElement = CreateLogVisualElement(log, isEven);
+                var id = kvp.Key;
+                var log = kvp.Value;
+
+                var logElement = CreateLogVisualElement(log, id, isEven);
 
                 logContainer.Add(logElement);
 
                 isEven = !isEven;
             }
-        }
-
-        VisualElement CreateLogVisualElement(VaultLog log, bool isEven)
-        {
-            var logElement = new VisualElement();
-
-            logElement.AddToClassList(LOG_ELEMENT_CLASS_NAME);
-
-            if (log.Level == LogLevel.Exception)
-            {
-                logElement.AddToClassList(LOG_ELEMENT_CRITICAL_CLASS_NAME);
-            }
-            else if (isEven)
-            {
-                logElement.AddToClassList(LOG_ELEMENT_EVEN_CLASS_NAME);
-            }
-
-            var logIconClass = log.Level switch
-            {
-                LogLevel.Info => INFO_ICON_CLASS_NAME,
-                LogLevel.Debug => DEBUG_ICON_CLASS_NAME,
-                LogLevel.Warn => WARNING_ICON_CLASS_NAME,
-                LogLevel.Error or LogLevel.Exception => ERROR_ICON_CLASS_NAME,
-                _ => INFO_ICON_CLASS_NAME
-            };
-
-            var logIconLabel = log.Level switch
-            {
-                LogLevel.Info => new Label("I"),
-                LogLevel.Debug => new Label("D"),
-                LogLevel.Warn => new Label("W"),
-                LogLevel.Error or LogLevel.Exception => new Label("E"),
-                _ => new Label("I")
-            };
-            logIconLabel.AddToClassList(LOG_ICON_CLASS_NAME);
-            logIconLabel.AddToClassList(logIconClass);
-
-            logElement.Add(logIconLabel);
-
-            var logMessageLabel = new Label($"[{log.Context}] {log.Message}");
-            logMessageLabel.AddToClassList(LOG_TEXT_CLASS_NAME);
-
-            logElement.Add(logMessageLabel);
-            logElement.AddManipulator(
-                new Clickable(() => 
-                {
-                    if (_focusedLog != null)
-                    {
-                        _focusedLog.RemoveFromClassList(ACTIVE_ELEMENT_CLASS_NAME);
-                    }
-
-                    _focusedLog = logElement;
-                    _focusedLog.AddToClassList(ACTIVE_ELEMENT_CLASS_NAME);
-
-                    OnLogSelected(log); 
-                }));
-
-            return logElement;
-        }
-
-        void OnLogSelected(VaultLog log)
-        {
-            var stackTrace = log.StackTrace;
-
-            TriggerDetailsViewVisibility(true);
-
-            // delayCall executes after all inspectors have been updated. Must be delayed to let detailsView accomodate to new height before scrolling
-            // to element
-            EditorApplication.delayCall += () =>
-            {
-                _logView.ScrollTo(_focusedLog);
-            };            
         }
 
         #endregion
