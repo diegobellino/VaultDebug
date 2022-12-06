@@ -1,6 +1,6 @@
 {
-    "name": "Vault.Logging.Runtime",
-    "rootNamespace": "",
+    "name": "VaultDebug.Logging.Runtime",
+    "rootNamespace": "VaultDebug.Logging.Runtime",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

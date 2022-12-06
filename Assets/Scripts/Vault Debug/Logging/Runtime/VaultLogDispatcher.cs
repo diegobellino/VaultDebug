@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vault.Logging.Runtime
+namespace VaultDebug.Logging.Runtime
 {
     public sealed class VaultLogDispatcher
     {

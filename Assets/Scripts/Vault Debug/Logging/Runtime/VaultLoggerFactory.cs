@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vault.Logging.Runtime
+namespace VaultDebug.Logging.Runtime
 {
     [Flags()]
     public enum LogLevel

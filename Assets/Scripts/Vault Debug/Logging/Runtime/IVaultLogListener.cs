@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-
-namespace Vault.Logging.Runtime
+namespace VaultDebug.Logging.Runtime
 {
     public interface IVaultLogListener
     {

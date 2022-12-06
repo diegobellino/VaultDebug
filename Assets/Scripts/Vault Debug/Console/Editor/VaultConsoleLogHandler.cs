@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using Vault.Logging.Runtime;
+using VaultDebug.Logging.Runtime;
 
-namespace Vault.Logging.Editor.VaultConsole
+namespace VaultDebug.Console.Editor
 {
     public class VaultConsoleLogHandler : IDisposable, IVaultLogHandler
     {

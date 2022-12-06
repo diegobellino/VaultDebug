@@ -3,17 +3,17 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System;
-using Vault.Logging.Runtime;
 using System.Collections.Generic;
-using Elements = Vault.Logging.Editor.VaultConsoleElements;
+using Elements = VaultDebug.Console.Editor.VaultConsoleElements;
+using VaultDebug.Logging.Runtime;
 
-namespace Vault.Logging.Editor.VaultConsole
+namespace VaultDebug.Console.Editor
 {
     public class VaultConsoleEditor : EditorWindow, IVaultLogListener
     {
         #region VARIABLES
 
-        const string BASE_PATH = "Assets/Scripts/Vault.Logging/Editor/Vault Console/";
+        const string BASE_PATH = "Assets/Scripts/Vault Debug/Console/Editor/";
         const string STACKTRACE_PATTERN = "[^\\n|\"].*?(?=\\n)";
 
         Dictionary<LogLevel, Button> _filterButtons = new();
@@ -36,7 +36,7 @@ namespace Vault.Logging.Editor.VaultConsole
         [MenuItem("Vault/Vault Console")]
         public static void CreateWindow()
         {
-            var window = GetWindow<VaultConsoleEditor>();
+            var window = GetWindow(typeof(VaultConsoleEditor));
             window.titleContent = new GUIContent("Vault Console");
         }
     

@@ -1,6 +1,6 @@
 using System;
 
-namespace Vault.Logging.Runtime
+namespace VaultDebug.Logging.Runtime
 {
     public struct VaultLog
     {

@@ -1,4 +1,4 @@
-namespace Vault.Logging.Editor
+namespace VaultDebug.Console.Editor
 {
     public static class VaultConsoleElements
     {
