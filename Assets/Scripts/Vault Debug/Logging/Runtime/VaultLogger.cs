@@ -21,7 +21,7 @@ namespace VaultDebug.Logging.Runtime
             Message = message;
             StackTrace = stackTrace;
 
-            TimeStamp = DateTime.UtcNow.ToShortTimeString();
+            TimeStamp = DateTime.Now.ToLongTimeString();
         }
     }
 

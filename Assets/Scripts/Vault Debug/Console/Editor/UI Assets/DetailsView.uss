@@ -1,0 +1,23 @@
+.tag {
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    border-left-color: rgba(79, 79, 79, 255);
+    border-right-color: rgba(79, 79, 79, 255);
+    border-top-color: rgba(79, 79, 79, 255);
+    border-bottom-color: rgba(79, 79, 79, 255);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    color: rgba(118, 115, 115, 255);
+}

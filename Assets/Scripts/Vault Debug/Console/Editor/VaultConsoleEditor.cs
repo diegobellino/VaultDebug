@@ -13,7 +13,6 @@ namespace VaultDebug.Console.Editor
     {
         #region VARIABLES
 
-        const string BASE_PATH = "Assets/Scripts/Vault Debug/Console/Editor/";
         const string STACKTRACE_PATTERN = "[^\\n|\"].*?(?=\\n)";
 
         Dictionary<LogLevel, Button> _filterButtons = new();
@@ -28,7 +27,6 @@ namespace VaultDebug.Console.Editor
         VisualElement _focusedLogElement;
         ScrollView _logView;
 
-        int _count = 0;
         int _selectedLogId = -1;
 
         #endregion
@@ -46,8 +44,7 @@ namespace VaultDebug.Console.Editor
             _logHandler.RegisterListener(this);
             
             var root = rootVisualElement;
-            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BASE_PATH + "VaultConsoleEditor.uxml");
-            _visualTree = visualTree.Instantiate();
+            _visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(Elements.MAIN_VIEW_PATH).Instantiate();
             _visualTree.style.height = new StyleLength(Length.Percent(100));
 
             AddToolbarToTree();
@@ -55,6 +52,10 @@ namespace VaultDebug.Console.Editor
             AddDetailsViewToTree();
 
             RefreshFilters();
+
+            Debug.Log("Hello world");
+            Debug.LogError("Hello world");
+            Debug.LogWarning("Hello world");
 
             root.Add(_visualTree);
         }
@@ -68,16 +69,6 @@ namespace VaultDebug.Console.Editor
         // Executes 10 times per second
         void OnInspectorUpdate()
         {
-            if (_count < 10)
-            {
-                _count++;
-            }
-            else
-            {
-                _count = 0;
-                Logger.Info("This is an info log");
-            }
-
             // If window is unfocused, auto scroll to bottom and disable detail view
             if (focusedWindow != this)
             {
@@ -86,7 +77,7 @@ namespace VaultDebug.Console.Editor
             }
         }
 
-        #region VIEW
+        #region VIEWS
 
         void AddMainViewToTree()
         {
@@ -102,23 +93,14 @@ namespace VaultDebug.Console.Editor
 
         void AddDetailsViewToTree()
         {
-            _detailsView = new VisualElement();
-            _detailsView.AddToClassList(Elements.DETAILS_VIEW_CLASS_NAME);
+            _detailsView = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(Elements.DETAILS_VIEW_PATH).Instantiate();
+            
+            var hideButton = _detailsView.Q<Button>(Elements.DETAILS_HIDE_BUTTON_CLASS_NAME);
+            hideButton.clicked += () => {
+                TriggerDetailsViewVisibility(false);
+            };
 
             TriggerDetailsViewVisibility(false);
-
-            var hideButton = new Button(() =>
-            {
-                TriggerDetailsViewVisibility(false);
-            });
-            hideButton.AddToClassList(Elements.HIDE_BUTTON_CLASS_NAME);
-
-            // Unicode char for down triangle
-            var downArrow = '\u25BC';
-            var hideLabel = new Label(downArrow.ToString());
-
-            hideButton.Add(hideLabel);
-            _detailsView.Add(hideButton);
             _visualTree.Add(_detailsView);
         }
 
@@ -170,6 +152,19 @@ namespace VaultDebug.Console.Editor
                 _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 _focusedLogElement = null;
                 _selectedLogId = -1;
+
+                var stacktrace = _detailsView.Q<Label>(Elements.DETAILS_STACKTRACE_NAME);
+                stacktrace.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            }
+            else
+            {
+                var log = _logHandler.GetLogWithId(_selectedLogId);
+                var timestampTag = _detailsView.Q<Label>(Elements.DETAILS_TIMESTAMP_TAG_NAME);
+                timestampTag.text = log.TimeStamp;
+
+                var stacktrace = _detailsView.Q<Label>(Elements.DETAILS_STACKTRACE_NAME);
+                stacktrace.text = log.StackTrace;
+                stacktrace.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
             }
         }
 
@@ -222,6 +217,11 @@ namespace VaultDebug.Console.Editor
             logElement.AddManipulator(
                 new Clickable(() =>
                 {
+                    if (_focusedLogElement != null)
+                    {
+                        _focusedLogElement.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                    }
+
                     _selectedLogId = id;
                     _focusedLogElement = logElement;
                     _focusedLogElement.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
+using UnityEngine.Assertions;
 using VaultDebug.Logging.Runtime;
 
 namespace VaultDebug.Console.Editor
@@ -134,6 +135,13 @@ namespace VaultDebug.Console.Editor
 
             return filteredLogs;
         }
+
+        public VaultLog GetLogWithId(int id)
+        {
+            Assert.IsTrue(_allLogsById.TryGetValue(id, out var log), $"Log with id {id} not found");
+            return log;
+        }
+
 
         void ClearLogs()
         {
