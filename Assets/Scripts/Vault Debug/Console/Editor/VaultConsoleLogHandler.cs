@@ -101,7 +101,7 @@ namespace VaultDebug.Console.Editor
                 }
 
                 // Patter has 3 groups: Script path, code line and message
-                var matchedGroups = compilerMessage.message.MatchPattern(COMPILER_MESSAGE_PATTERN);
+                var matchedGroups = compilerMessage.message.MatchOnce(COMPILER_MESSAGE_PATTERN);
                 // Regex returns raw string as first match for some reason
                 var rawMessage = matchedGroups[0].ToString();
                 var path = matchedGroups[1].ToString();

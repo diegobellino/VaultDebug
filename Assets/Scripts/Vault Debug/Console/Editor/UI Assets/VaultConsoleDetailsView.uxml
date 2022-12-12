@@ -2,12 +2,25 @@
     <Style src="project://database/Assets/Scripts/Vault%20Debug/Console/Editor/UI%20Assets/VaultConsoleEditor.uss?fileID=7433441132597879392&amp;guid=1f450b14f55d32848b31cf1b10590189&amp;type=3#VaultConsoleEditor" />
     <Style src="project://database/Assets/Scripts/Vault%20Debug/Console/Editor/UI%20Assets/DetailsView.uss?fileID=7433441132597879392&amp;guid=8b75e1f8730cecc43932014d736adc9e&amp;type=3#DetailsView" />
     <ui:VisualElement name="details-view" class="details-view">
-        <ui:VisualElement name="toolbar-area" style="height: 50px;">
+        <ui:VisualElement name="toolbar-area" style="height: 60px;">
             <ui:Button text="\u25BC" display-tooltip-when-elided="false" name="hide-button" class="hide-button" />
             <ui:Label text="13:02:06" display-tooltip-when-elided="true" name="timestamp-tag" class="tag" style="position: absolute; left: 10px; top: 10px;" />
+            <ui:Label text="CONTEXT" display-tooltip-when-elided="true" name="context-tag" class="tag" style="position: absolute; left: 82px; top: 10px;" />
         </ui:VisualElement>
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" class="hidden">
-            <ui:Label text=" Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim.&#10;&#10;Cras in urna sed nisl lacinia consequat. Ut congue, dolor a scelerisque euismod, neque odio scelerisque nunc, at tincidunt erat eros ac mauris. In pellentesque nunc sed fringilla euismod. Curabitur auctor, ipsum eu feugiat eleifend, elit mauris consequat justo, in efficitur dolor velit vitae tortor. Phasellus rhoncus rhoncus cursus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Maecenas pharetra diam vel tincidunt ultricies. " display-tooltip-when-elided="true" style="white-space: normal; border-left-color: rgba(79, 79, 79, 255); border-right-color: rgba(79, 79, 79, 255); border-top-color: rgba(79, 79, 79, 255); border-bottom-color: rgba(79, 79, 79, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; margin-left: 6px; margin-right: 6px; margin-top: 6px; margin-bottom: 6px; padding-left: 6px; padding-right: 6px; padding-top: 6px; padding-bottom: 6px;" />
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1">
+            <ui:Label text="Full Log:" display-tooltip-when-elided="true" class="details-label" />
+            <ui:Label text="This is a full log" display-tooltip-when-elided="true" name="full-log" class="details-element" style="white-space: normal; border-left-color: rgb(118, 115, 115); border-right-color: rgb(118, 115, 115); border-top-color: rgb(118, 115, 115); border-bottom-color: rgb(118, 115, 115); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; margin-left: 6px; margin-right: 6px; margin-top: 6px; margin-bottom: 20px; padding-left: 6px; padding-right: 6px; padding-top: 6px; padding-bottom: 6px;" />
+            <ui:VisualElement name="tabs" style="flex-direction: row-reverse;">
+                <ui:Button text="Raw" display-tooltip-when-elided="true" name="raw-tab" />
+                <ui:Button text="Smart" display-tooltip-when-elided="true" name="smart-tab" class="tab-selected" />
+                <ui:Label text="Stacktrace:" display-tooltip-when-elided="true" class="details-label" style="flex-grow: 1; -unity-text-align: middle-left;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="stacktrace" class="details-element">
+                <ui:VisualElement name="tab-content">
+                    <ui:VisualElement name="smart-content" style="padding-bottom: 10px; padding-top: 10px;" />
+                    <ui:VisualElement name="raw-content" style="padding-top: 10px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:ScrollView>
     </ui:VisualElement>
 </ui:UXML>

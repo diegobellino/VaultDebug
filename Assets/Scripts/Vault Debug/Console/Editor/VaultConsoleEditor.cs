@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using Elements = VaultDebug.Console.Editor.VaultConsoleElements;
 using VaultDebug.Logging.Runtime;
+using System.Text.RegularExpressions;
+using UnityEditorInternal;
 
 namespace VaultDebug.Console.Editor
 {
@@ -13,7 +15,7 @@ namespace VaultDebug.Console.Editor
     {
         #region VARIABLES
 
-        const string STACKTRACE_PATTERN = "[^\\n|\"].*?(?=\\n)";
+        const string STACKTRACE_PATTERN = @"(.*)(?:\s\(at\s)(.*):(\d*)";
 
         Dictionary<LogLevel, Button> _filterButtons = new();
         TemplateContainer _visualTree;
@@ -53,11 +55,16 @@ namespace VaultDebug.Console.Editor
 
             RefreshFilters();
 
-            Debug.Log("Hello world");
-            Debug.LogError("Hello world");
-            Debug.LogWarning("Hello world");
+            TestLogs();
 
             root.Add(_visualTree);
+        }
+
+        void TestLogs()
+        {
+            Debug.Log("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
+            Debug.LogError("Hello world");
+            Debug.LogWarning("Hello world");
         }
 
         void OnDestroy()
@@ -73,7 +80,6 @@ namespace VaultDebug.Console.Editor
             if (focusedWindow != this)
             {
                 _logView.scrollOffset = Vector2.up * float.MaxValue;
-                TriggerDetailsViewVisibility(false);
             }
         }
 
@@ -97,10 +103,10 @@ namespace VaultDebug.Console.Editor
             
             var hideButton = _detailsView.Q<Button>(Elements.DETAILS_HIDE_BUTTON_CLASS_NAME);
             hideButton.clicked += () => {
-                TriggerDetailsViewVisibility(false);
+                HideDetailsView();
             };
 
-            TriggerDetailsViewVisibility(false);
+            HideDetailsView();
             _visualTree.Add(_detailsView);
         }
 
@@ -142,30 +148,96 @@ namespace VaultDebug.Console.Editor
             return button;
         }
 
-        void TriggerDetailsViewVisibility(bool isOn)
+        void ShowDetailsView()
         {
-            _detailsView.style.minHeight = isOn ? new Length(60, LengthUnit.Percent) : 0;
-            _detailsView.style.visibility = isOn ? Visibility.Visible : Visibility.Hidden;
+            _detailsView.style.visibility = Visibility.Visible;
 
-            if (!isOn)
+            var log = _logHandler.GetLogWithId(_selectedLogId);
+            var timestampTag = _detailsView.Q<Label>(Elements.DETAILS_TIMESTAMP_TAG_NAME);
+            timestampTag.text = log.TimeStamp;
+
+            var contextTag = _detailsView.Q<Label>(Elements.DETAILS_CONTEXT_TAG_NAME);
+            contextTag.text = log.Context;
+
+            var fullLog = _detailsView.Q<Label>(Elements.DETAILS_FULL_LOG_CLASS_NAME);
+            fullLog.text = log.Message;
+            fullLog.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+
+            var smartTab = _detailsView.Q<Button>(Elements.DETAILS_SMART_TAB_NAME);
+            var smartContent = _detailsView.Q(Elements.DETAILS_SMART_STACKTRACE_NAME);
+
+            var rawTab = _detailsView.Q<Button>(Elements.DETAILS_RAW_TAB_NAME);
+            var rawContent = _detailsView.Q(Elements.DETAILS_RAW_STACKTRACE_NAME);
+
+            smartTab.clicked += () => SelectSmartTab();
+            rawTab.clicked += () => SelectRawTab();
+
+            // Smart stacktrace is selected by default
+            SelectSmartTab();
+
+            void SelectSmartTab()
             {
-                _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
-                _focusedLogElement = null;
-                _selectedLogId = -1;
+                var matchCollection = log.Stacktrace.MatchAll(STACKTRACE_PATTERN);
 
-                var stacktrace = _detailsView.Q<Label>(Elements.DETAILS_STACKTRACE_NAME);
-                stacktrace.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                smartContent.Clear();
+
+                foreach (Match match in matchCollection)
+                {
+                    var method = match.Groups[1].ToString();
+                    var path = match.Groups[2].ToString();
+                    var line = int.Parse(match.Groups[3].ToString());
+                    var stackTrace = CreateURLText($"{method} at line {line}",
+                        () => InternalEditorUtility.OpenFileAtLineExternal(path, line));
+                    stackTrace.AddToClassList("stacktrace-element");
+                    smartContent.Add(stackTrace);
+                }
+
+                rawTab.RemoveFromClassList(Elements.DETAILS_SELECTED_TAB);
+                rawContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+
+                smartTab.AddToClassList(Elements.DETAILS_SELECTED_TAB);
+                smartContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
             }
-            else
+
+            void SelectRawTab()
             {
-                var log = _logHandler.GetLogWithId(_selectedLogId);
-                var timestampTag = _detailsView.Q<Label>(Elements.DETAILS_TIMESTAMP_TAG_NAME);
-                timestampTag.text = log.TimeStamp;
+                rawContent.Clear();
+                
+                var textElement = new TextElement();
+                textElement.text = log.Stacktrace;
 
-                var stacktrace = _detailsView.Q<Label>(Elements.DETAILS_STACKTRACE_NAME);
-                stacktrace.text = log.StackTrace;
-                stacktrace.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                rawContent.Add(textElement);
+
+                rawTab.AddToClassList(Elements.DETAILS_SELECTED_TAB);
+                rawContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+
+                smartTab.RemoveFromClassList(Elements.DETAILS_SELECTED_TAB);
+                smartContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
             }
+        }
+
+        void HideDetailsView()
+        {
+            _detailsView.style.visibility = Visibility.Hidden;
+
+            _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+            _focusedLogElement = null;
+            _selectedLogId = -1;
+
+            var stacktrace = _detailsView.Q(Elements.DETAILS_SMART_STACKTRACE_NAME);
+            stacktrace.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+
+            var fullLog = _detailsView.Q<Label>(Elements.DETAILS_FULL_LOG_CLASS_NAME);
+            fullLog.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+        }
+
+        VisualElement CreateURLText(string text, Action OnClick)
+        {
+            var urlElement = new TextElement();
+            urlElement.text = $"- <color=#5D93BC>{text}</color>";
+            urlElement.AddManipulator(new Clickable(OnClick));
+
+            return urlElement;
         }
 
         VisualElement CreateLogVisualElement(VaultLog log, int id, bool isEven)
@@ -203,8 +275,11 @@ namespace VaultDebug.Console.Editor
             logIconLabel.AddToClassList(Elements.LOG_ICON_CLASS_NAME);
             logIconLabel.AddToClassList(logIconClass);
 
-            var logMessageLabel = new Label($"[{log.Context}] {log.Message}");
+            var logMessageLabel = new Label(log.Message);
             logMessageLabel.AddToClassList(Elements.LOG_TEXT_CLASS_NAME);
+
+            var contextTag = new Label(log.Context);
+            contextTag.AddToClassList(Elements.LOG_TAG_CLASS_NAME);
 
             if (id == _selectedLogId)
             {
@@ -214,6 +289,7 @@ namespace VaultDebug.Console.Editor
 
             logElement.Add(logIconLabel);
             logElement.Add(logMessageLabel);
+            logElement.Add(contextTag);
             logElement.AddManipulator(
                 new Clickable(() =>
                 {
@@ -234,9 +310,9 @@ namespace VaultDebug.Console.Editor
 
         void OnLogSelected(VaultLog log)
         {
-            var stackTrace = log.StackTrace;
+            var stackTrace = log.Stacktrace;
 
-            TriggerDetailsViewVisibility(true);
+            ShowDetailsView();
 
             // delayCall executes after all inspectors have been updated. Must be delayed to let detailsView accomodate to new height before scrolling
             // to element

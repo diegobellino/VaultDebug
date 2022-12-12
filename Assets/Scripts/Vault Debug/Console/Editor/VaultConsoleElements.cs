@@ -28,6 +28,7 @@ namespace VaultDebug.Console.Editor
         public const string LOG_ELEMENT_CRITICAL_CLASS_NAME = "log-element-critical";
         public const string LOG_TEXT_CLASS_NAME = "log-text";
         public const string LOG_ICON_CLASS_NAME = "log-icon";
+        public const string LOG_TAG_CLASS_NAME = "log-tag";
 
         public const string MAIN_VIEW_CLASS_NAME = "main-view";
 
@@ -42,7 +43,15 @@ namespace VaultDebug.Console.Editor
 
         public const string DETAILS_HIDE_BUTTON_CLASS_NAME = "hide-button";
         public const string DETAILS_TIMESTAMP_TAG_NAME = "timestamp-tag";
-        public const string DETAILS_STACKTRACE_NAME = "stacktrace";
+        public const string DETAILS_CONTEXT_TAG_NAME = "context-tag";
+
+        public const string DETAILS_SMART_TAB_NAME = "smart-tab";
+        public const string DETAILS_RAW_TAB_NAME = "raw-tab";
+        public const string DETAILS_SMART_STACKTRACE_NAME = "smart-content";
+        public const string DETAILS_RAW_STACKTRACE_NAME = "raw-content";
+        public const string DETAILS_SELECTED_TAB = "tab-selected";
+
+        public const string DETAILS_FULL_LOG_CLASS_NAME = "full-log";
 
         #endregion
 

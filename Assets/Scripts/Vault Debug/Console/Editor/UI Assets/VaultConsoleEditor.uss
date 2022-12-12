@@ -102,12 +102,38 @@
     height: 100%;
     padding-left: 10px;
     padding-right: 0;
-    white-space: normal;
+    white-space: nowrap;
     align-items: flex-start;
     justify-content: flex-start;
-    max-width: none;
+    max-width: 90%;
     width: auto;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.log-tag {
+    height: auto;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 0;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-left-color: rgb(118, 115, 115);
+    border-right-color: rgb(118, 115, 115);
+    border-top-color: rgb(118, 115, 115);
+    border-bottom-color: rgb(118, 115, 115);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    color: rgb(190, 190, 190);
 }
 
 .log-icon {
@@ -143,24 +169,11 @@
     background-color: rgba(104, 156, 195, 0.55);
 }
 
-.unity-two-pane-split-view__dragline-anchor--vertical {
-    background-color: rgb(41, 40, 40);
-}
-
 .main-view {
     align-items: stretch;
     justify-content: flex-start;
-}
-
-.details-view {
-    border-top-width: 2px;
-    border-left-color: rgb(29, 28, 28);
-    border-right-color: rgb(29, 28, 28);
-    border-top-color: rgb(29, 28, 28);
-    border-bottom-color: rgb(29, 28, 28);
-    background-color: rgb(72, 71, 71);
-    position: relative;
-    bottom: 0;
+    flex-grow: 1;
+    min-height: 30%;
 }
 
 .hide-button {

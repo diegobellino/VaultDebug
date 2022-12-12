@@ -9,7 +9,7 @@ namespace VaultDebug.Logging.Runtime
             return Regex.IsMatch(str, pattern);
         }
 
-        public static GroupCollection MatchPattern(this string str, string pattern)
+        public static GroupCollection MatchOnce(this string str, string pattern)
         {
             var match = Regex.Match(str, pattern);
 
@@ -21,7 +21,7 @@ namespace VaultDebug.Logging.Runtime
             return null;
         }
 
-        public static MatchCollection MatchAllPatterns(this string str, string pattern)
+        public static MatchCollection MatchAll(this string str, string pattern)
         {
             var matchCollection = Regex.Matches(str, pattern);
             return matchCollection;

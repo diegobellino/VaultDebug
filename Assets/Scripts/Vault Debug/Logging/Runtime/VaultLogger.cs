@@ -12,14 +12,14 @@ namespace VaultDebug.Logging.Runtime
 
         public string TimeStamp { get; private set; }
 
-        public string StackTrace { get; private set; }
+        public string Stacktrace { get; private set; }
 
         public VaultLog(LogLevel level, string context, string message, string stackTrace)
         {
             Level = level;
             Context = context;
             Message = message;
-            StackTrace = stackTrace;
+            Stacktrace = stackTrace;
 
             TimeStamp = DateTime.Now.ToLongTimeString();
         }

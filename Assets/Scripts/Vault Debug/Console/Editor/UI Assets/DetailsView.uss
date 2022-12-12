@@ -7,10 +7,10 @@
     margin-right: 3px;
     margin-top: 1px;
     margin-bottom: 1px;
-    border-left-color: rgba(79, 79, 79, 255);
-    border-right-color: rgba(79, 79, 79, 255);
-    border-top-color: rgba(79, 79, 79, 255);
-    border-bottom-color: rgba(79, 79, 79, 255);
+    border-left-color: rgb(118, 115, 115);
+    border-right-color: rgb(118, 115, 115);
+    border-top-color: rgb(118, 115, 115);
+    border-bottom-color: rgb(118, 115, 115);
     border-left-width: 1px;
     border-right-width: 1px;
     border-top-width: 1px;
@@ -19,5 +19,52 @@
     border-bottom-left-radius: 5px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    color: rgba(118, 115, 115, 255);
+    color: rgb(190, 190, 190);
+}
+
+.details-view {
+    border-top-width: 2px;
+    border-left-color: rgb(29, 28, 28);
+    border-right-color: rgb(29, 28, 28);
+    border-top-color: rgb(29, 28, 28);
+    border-bottom-color: rgb(29, 28, 28);
+    background-color: rgb(72, 71, 71);
+    align-items: stretch;
+}
+
+.details-label {
+    color: rgb(190, 190, 190);
+    margin-left: 6px;
+}
+
+.stacktrace-element:hover {
+    background-color: rgb(69, 89, 103);
+}
+
+.details-element {
+    white-space: normal;
+    border-left-color: rgb(118, 115, 115);
+    border-right-color: rgb(118, 115, 115);
+    border-top-color: rgb(118, 115, 115);
+    border-bottom-color: rgb(118, 115, 115);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.tab-selected {
+    background-color: rgb(93, 147, 188);
 }
