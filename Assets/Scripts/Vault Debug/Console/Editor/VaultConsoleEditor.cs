@@ -24,7 +24,8 @@ namespace VaultDebug.Console.Editor
 
         readonly VaultConsoleLogHandler _logHandler = new();
 
-        static VaultLogger Logger = VaultLoggerFactory.GetOrCreateLogger("VAULT CONSOLE");
+        static VaultLogger Logger = VaultLoggerFactory.GetOrCreateLogger("ONE LOGGER");
+        static VaultLogger SecondLogger = VaultLoggerFactory.GetOrCreateLogger("ANOTHER LOGGER");
 
         VisualElement _focusedLogElement;
         ScrollView _logView;
@@ -33,7 +34,7 @@ namespace VaultDebug.Console.Editor
 
         #endregion
 
-        [MenuItem("Vault/Vault Console")]
+        [MenuItem("Vault Debug/Vault Console")]
         public static void CreateWindow()
         {
             var window = GetWindow(typeof(VaultConsoleEditor));
@@ -62,9 +63,10 @@ namespace VaultDebug.Console.Editor
 
         void TestLogs()
         {
-            Debug.Log("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
-            Debug.LogError("Hello world");
-            Debug.LogWarning("Hello world");
+            Logger.Debug("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
+            SecondLogger.Error("Error log from another logger");
+            Logger.Warn("Warn log from a logger");
+            SecondLogger.Info("Info log from another logger");
         }
 
         void OnDestroy()
@@ -150,7 +152,7 @@ namespace VaultDebug.Console.Editor
 
         void ShowDetailsView()
         {
-            _detailsView.style.visibility = Visibility.Visible;
+            _detailsView.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
 
             var log = _logHandler.GetLogWithId(_selectedLogId);
             var timestampTag = _detailsView.Q<Label>(Elements.DETAILS_TIMESTAMP_TAG_NAME);
@@ -192,10 +194,10 @@ namespace VaultDebug.Console.Editor
                     smartContent.Add(stackTrace);
                 }
 
-                rawTab.RemoveFromClassList(Elements.DETAILS_SELECTED_TAB);
+                rawTab.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 rawContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
 
-                smartTab.AddToClassList(Elements.DETAILS_SELECTED_TAB);
+                smartTab.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 smartContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
             }
 
@@ -208,17 +210,17 @@ namespace VaultDebug.Console.Editor
 
                 rawContent.Add(textElement);
 
-                rawTab.AddToClassList(Elements.DETAILS_SELECTED_TAB);
+                rawTab.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 rawContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
 
-                smartTab.RemoveFromClassList(Elements.DETAILS_SELECTED_TAB);
+                smartTab.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
                 smartContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
             }
         }
 
         void HideDetailsView()
         {
-            _detailsView.style.visibility = Visibility.Hidden;
+            _detailsView.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
 
             _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
             _focusedLogElement = null;

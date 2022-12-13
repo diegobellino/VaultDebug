@@ -49,7 +49,6 @@ namespace VaultDebug.Console.Editor
         public const string DETAILS_RAW_TAB_NAME = "raw-tab";
         public const string DETAILS_SMART_STACKTRACE_NAME = "smart-content";
         public const string DETAILS_RAW_STACKTRACE_NAME = "raw-content";
-        public const string DETAILS_SELECTED_TAB = "tab-selected";
 
         public const string DETAILS_FULL_LOG_CLASS_NAME = "full-log";
 

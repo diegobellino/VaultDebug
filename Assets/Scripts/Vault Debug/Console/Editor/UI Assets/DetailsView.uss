@@ -64,7 +64,3 @@
     padding-top: 6px;
     padding-bottom: 6px;
 }
-
-.tab-selected {
-    background-color: rgb(93, 147, 188);
-}
