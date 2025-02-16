@@ -198,15 +198,37 @@ namespace VaultDebug.Console.Editor
 
                 smartContent.Clear();
 
-                foreach (Match match in matchCollection)
+                if (matchCollection.Count > 0)
                 {
-                    var method = match.Groups[1].ToString();
-                    var path = match.Groups[2].ToString();
-                    var line = int.Parse(match.Groups[3].ToString());
-                    var stackTrace = CreateURLText($"{method} at line {line}",
-                        () => InternalEditorUtility.OpenFileAtLineExternal(path, line));
-                    stackTrace.AddToClassList("stacktrace-element");
-                    smartContent.Add(stackTrace);
+                    foreach (Match match in matchCollection)
+                    {
+                        var method = match.Groups[1].ToString();
+                        var path = match.Groups[2].ToString();
+                        var line = int.Parse(match.Groups[3].ToString());
+
+                        var stackTrace = CreateURLText($"{method} at line {line}",
+                            () => InternalEditorUtility.OpenFileAtLineExternal(path, line));
+
+                        stackTrace.AddToClassList("stacktrace-element");
+                        smartContent.Add(stackTrace);
+                    }
+                }
+                else
+                {
+                    // Handle compilation logs (no method context)
+                    string[] stackParts = log.Stacktrace.Split(':');
+                    if (stackParts.Length == 2)
+                    {
+                        string path = stackParts[0];
+                        if (int.TryParse(stackParts[1], out int line))
+                        {
+                            var stackTrace = CreateURLText($"Compilation Error at {path} (line {line})",
+                                () => InternalEditorUtility.OpenFileAtLineExternal(path, line));
+
+                            stackTrace.AddToClassList("stacktrace-element");
+                            smartContent.Add(stackTrace);
+                        }
+                    }
                 }
 
                 rawTab.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
