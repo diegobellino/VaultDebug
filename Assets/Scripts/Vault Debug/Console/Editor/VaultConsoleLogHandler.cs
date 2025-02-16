@@ -84,6 +84,8 @@ namespace VaultDebug.Console.Editor
                 logs.AddRange(logList);
             }
 
+            logs.Sort();
+
             string json = JsonConvert.SerializeObject(logs, Formatting.Indented);
             File.WriteAllText(FullLogPath, json);
         }
