@@ -337,6 +337,5 @@ namespace VaultDebug.Console.Editor
         }
 
         #endregion
-
     }
 }

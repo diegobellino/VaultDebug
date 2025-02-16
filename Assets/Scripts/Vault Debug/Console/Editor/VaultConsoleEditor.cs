@@ -386,20 +386,29 @@ namespace VaultDebug.Console.Editor
         public void RefreshLogs()
         {
             var logContainer = _mainView.Q(classes: Elements.LOG_VIEW_CLASS_NAME);
-            logContainer.Clear();
 
-            var isEven = false;
+            var existingLogs = logContainer.childCount;
             var filteredLogs = _logHandler.GetLogsFiltered(_textFilter);
+
+            if (filteredLogs.Count == existingLogs)
+            {
+                return;
+            }
+
+            if (filteredLogs.Count <= 0)
+            {
+                logContainer.Clear();
+                return;
+            }
 
             filteredLogs.Sort();
 
-            foreach (var log in filteredLogs)
+            for (int i = existingLogs; i < filteredLogs.Count; i++)
             {
-                var logElement = CreateLogVisualElement(log, log.Id, isEven);
+                var log = filteredLogs[i];
+                var logElement = CreateLogVisualElement(log, log.Id, i % 2 == 0);
 
                 logContainer.Add(logElement);
-
-                isEven = !isEven;
             }
         }
 
