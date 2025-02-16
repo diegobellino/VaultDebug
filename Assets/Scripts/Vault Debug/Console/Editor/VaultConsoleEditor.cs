@@ -32,15 +32,26 @@ namespace VaultDebug.Console.Editor
 
         int _selectedLogId = -1;
 
+        string _textFilter;
+
         #endregion
 
-        [MenuItem("Vault Debug/Vault Console")]
+        [MenuItem("Vault Console/Console Window")]
         public static void CreateWindow()
         {
             var window = GetWindow(typeof(VaultConsoleEditor));
             window.titleContent = new GUIContent("Vault Console");
         }
-    
+
+        [MenuItem("Vault Console/Debug/Generate test logs")]
+        public static void TestLogs()
+        {
+            Logger.Debug("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
+            SecondLogger.Error("Error log from another logger");
+            Logger.Warn("Warn log from a logger");
+            SecondLogger.Info("Info log from another logger");
+        }
+
         void CreateGUI()
         {
             _logHandler.Init();
@@ -56,18 +67,9 @@ namespace VaultDebug.Console.Editor
 
             RefreshFilters();
 
-            TestLogs();
-
             root.Add(_visualTree);
         }
 
-        void TestLogs()
-        {
-            Logger.Debug("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
-            SecondLogger.Error("Error log from another logger");
-            Logger.Warn("Warn log from a logger");
-            SecondLogger.Info("Info log from another logger");
-        }
 
         void OnDestroy()
         {
@@ -121,12 +123,13 @@ namespace VaultDebug.Console.Editor
 
             _filterButtons[LogLevel.Error] = CreateFilterButton(Elements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
             _filterButtons[LogLevel.Warn] = CreateFilterButton(Elements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
+            _filterButtons[LogLevel.Info] = CreateFilterButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); } );
             _filterButtons[LogLevel.Debug] = CreateFilterButton(Elements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
-            _filterButtons[LogLevel.Info] = CreateFilterButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); }, true);
 
             var searchbar = new ToolbarSearchField();
             searchbar.AddToClassList(Elements.SEARCHBAR_CLASS_NAME);
             searchbar.name = "searchbar";
+            searchbar.RegisterValueChangedCallback(OnFilterChanged);
 
             foreach(var button in _filterButtons.Values)
             {
@@ -135,37 +138,22 @@ namespace VaultDebug.Console.Editor
             
             toolbar.Add(searchbar);
 
-            var errorPauseButton = new Button();
-            errorPauseButton.text = "Error Pause";
-            errorPauseButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
-            errorPauseButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
-            toolbar.Add(errorPauseButton);
-
-            var collapseButton = new Button();
-            collapseButton.text = "Collapse";
-            collapseButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
-            collapseButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
-            toolbar.Add(collapseButton);
-
             var clearButton = new Button();
             clearButton.text = "Clear";
             clearButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
             clearButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            clearButton.clicked += ClearLogs;
             toolbar.Add(clearButton);
 
             _visualTree.Add(toolbar);
         }
 
-        Button CreateFilterButton(string name, string label, Action onClick, bool isFirst = false)
+        Button CreateFilterButton(string name, string label, Action onClick)
         {
             var button = new Button();
             button.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
             button.AddToClassList(Elements.TOOLBAR_BUTTON_SMALL_CLASS_NAME);
             button.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
-            if (isFirst)
-            {
-                button.AddToClassList(Elements.TOOLBAR_BUTTON_FIRST_CLASS_NAME);
-            }
             button.clicked += onClick;
             button.name = name;
             button.Add(new Label(label));
@@ -351,6 +339,12 @@ namespace VaultDebug.Console.Editor
 
         #region FILTERING
 
+        void OnFilterChanged(ChangeEvent<string> changeEvent)
+        {
+            _textFilter = changeEvent.newValue;
+            RefreshLogs();
+        }
+
         void FilterLogLevel(LogLevel logLevel)
         {
             if (!_filterButtons.ContainsKey(logLevel) || _filterButtons[logLevel] == null)
@@ -383,13 +377,21 @@ namespace VaultDebug.Console.Editor
 
         #region LOGGING
 
+        public void ClearLogs()
+        {
+            _logHandler.ClearLogs();
+            RefreshLogs();
+        }
+
         public void RefreshLogs()
         {
             var logContainer = _mainView.Q(classes: Elements.LOG_VIEW_CLASS_NAME);
             logContainer.Clear();
 
             var isEven = false;
-            var filteredLogs = _logHandler.GetLogsFiltered();
+            var filteredLogs = _logHandler.GetLogsFiltered(_textFilter);
+
+            filteredLogs.Sort();
 
             foreach (var log in filteredLogs)
             {

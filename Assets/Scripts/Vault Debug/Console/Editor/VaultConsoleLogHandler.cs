@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 using VaultDebug.Console.Editor.Utils;
 using VaultDebug.Logging.Runtime;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace VaultDebug.Console.Editor
 {
@@ -15,11 +18,14 @@ namespace VaultDebug.Console.Editor
 
         const string ACTIVE_FILTERS_KEY = "Vault.Logging.VaultConsoleEditor";
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
+        const string CONTEXT_FILTER_PATTERN = @"@context:\s*""(.*?)""|@context:\s*(\S+)";
         const int MAX_LOGS = 1000;
+        const string LOG_FILE_PATH = "vault_logs.json";
+        string FullLogPath => Path.Combine(Application.persistentDataPath, LOG_FILE_PATH);
 
         public Action OnLogsChanged;
 
-        LogLevel _activeFilters;
+        LogLevel _activeFilters = LogLevel.Debug & LogLevel.Error & LogLevel.Info & LogLevel.Warn;
         Dictionary<LogLevel, List<VaultLog>> _logsByLevel = new()
         {
             { LogLevel.Info, new List<VaultLog>() },
@@ -47,6 +53,8 @@ namespace VaultDebug.Console.Editor
             VaultLogDispatcher.RegisterHandler(this);
 
             ReadPreferences();
+
+            LoadLogs();
         }
 
         public void RegisterLogListener(IVaultLogListener listener)
@@ -64,6 +72,41 @@ namespace VaultDebug.Console.Editor
                 _listeners.Remove(listener);
             }
         }
+
+        #region LOAD/SAVE
+
+        void SaveLogs()
+        {
+            var logs = new List<VaultLog>();
+
+            foreach (var logList in _logsByLevel.Values)
+            {
+                logs.AddRange(logList);
+            }
+
+            string json = JsonConvert.SerializeObject(logs, Formatting.Indented);
+            File.WriteAllText(FullLogPath, json);
+        }
+
+        void LoadLogs()
+        {
+            if (!File.Exists(FullLogPath)) return;
+
+            string json = File.ReadAllText(FullLogPath);
+            var logs = JsonConvert.DeserializeObject<List<VaultLog>>(json);
+
+            if (logs != null)
+            {
+                foreach (var log in logs)
+                {
+                    _logsByLevel[log.Level].Add(log);
+                }
+            }
+
+            RefreshListeners();
+        }
+
+        #endregion
 
         #region LOGGING
 
@@ -149,9 +192,37 @@ namespace VaultDebug.Console.Editor
             RefreshListeners();
         }
 
-        public List<VaultLog> GetLogsFiltered()
+        public List<VaultLog> GetLogsFiltered(string textFilter)
         {
             var filteredLogs = new List<VaultLog>();
+
+            if (!string.IsNullOrEmpty(textFilter))
+            {
+                var contextFilterMatches = Regex.Matches(textFilter, CONTEXT_FILTER_PATTERN);
+                var contextFilters = new List<string>();
+
+                foreach (Match match in contextFilterMatches)
+                {
+                    var contextToFilter = match.Groups[1].Value;
+                    contextFilters.Add(contextToFilter);
+                }
+
+                foreach (var level in _logsByLevel.Keys)
+                {
+                    if (IsFilterActive(level))
+                    {
+                        foreach (var log in _logsByLevel[level])
+                        {
+                            if (contextFilters.Contains(log.Context))
+                            {
+                                filteredLogs.Add(log);
+                            }
+                        }
+                    }
+                }
+
+                return filteredLogs;
+            }
 
             foreach(var level in _logsByLevel.Keys)
             {
@@ -181,10 +252,15 @@ namespace VaultDebug.Console.Editor
         }
 
 
-        void ClearLogs()
+        public void ClearLogs()
         {
-            _logsByLevel.Clear();
+            foreach (var level in _logsByLevel.Keys)
+            {
+                _logsByLevel[level].Clear();
+            }
+
             _logCount = 0;
+            SaveLogs();
             RefreshListeners();
         }
 
@@ -247,9 +323,9 @@ namespace VaultDebug.Console.Editor
             AssemblyReloadEvents.beforeAssemblyReload -= ClearLogs;
             CompilationPipeline.assemblyCompilationFinished -= HandleCompilationLogs;
 
-
             if (disposeManagedResources)
             {
+                SaveLogs();
                 WritePreferences();
     
                 VaultLogDispatcher.UnregisterHandler(this);
@@ -259,5 +335,6 @@ namespace VaultDebug.Console.Editor
         }
 
         #endregion
+
     }
 }

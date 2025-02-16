@@ -3,14 +3,15 @@ using System.Collections.Generic;
 
 namespace VaultDebug.Logging.Runtime
 {
-    [Flags()]
+    [Flags]
     public enum LogLevel
     {
-        Info = 2,
-        Debug = 4,
-        Warn = 8,
-        Error = 16,
-        Exception = 32
+        None = 0,
+        Info = 1,
+        Debug = 2,
+        Warn = 4,
+        Error = 8,
+        Exception = 16
     }
 
     public sealed class VaultLoggerFactory

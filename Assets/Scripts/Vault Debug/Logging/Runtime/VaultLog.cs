@@ -2,7 +2,7 @@
 
 namespace VaultDebug.Logging.Runtime
 {
-    public struct VaultLog
+    public struct VaultLog: IComparable<VaultLog>
     {
         private static int _nextLogId = 0;
 
@@ -42,6 +42,11 @@ namespace VaultDebug.Logging.Runtime
         private static int GetNextId()
         {
             return System.Threading.Interlocked.Increment(ref _nextLogId);
+        }
+
+        public int CompareTo(VaultLog other)
+        {
+            return Id.CompareTo(other.Id);
         }
     }
 }
