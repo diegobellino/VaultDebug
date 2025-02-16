@@ -34,6 +34,7 @@ namespace VaultDebug.Console.Editor
             { LogLevel.Error, new List<VaultLog>() },
             { LogLevel.Exception, new List<VaultLog>() }
         };
+        Dictionary<string, List<VaultLog>> _logsByContext = new();
         List<IVaultLogListener> _listeners = new();
 
         int _logCount;
@@ -114,13 +115,22 @@ namespace VaultDebug.Console.Editor
 
         public void HandleLog(VaultLog log)
         {
-            var logs = _logsByLevel[log.Level];
-            logs.Add(log);
+            // Store in level-based dictionary (unchanged)
+            _logsByLevel[log.Level].Add(log);
+
+            // Store in context-based dictionary for faster filtering
+            if (!_logsByContext.ContainsKey(log.Context))
+            {
+                _logsByContext[log.Context] = new List<VaultLog>();
+            }
+            _logsByContext[log.Context].Add(log);
+
             _logCount++;
 
+            // Apply fixed-size buffer
             if (_logCount > MAX_LOGS)
             {
-                logs.RemoveAt(0); // Remove oldest log
+                _logsByLevel[log.Level].RemoveAt(0);
             }
 
             RefreshListeners();
@@ -198,39 +208,38 @@ namespace VaultDebug.Console.Editor
         {
             var filteredLogs = new List<VaultLog>();
 
+            // Extract @context filters from search query
+            var contextFilters = new List<string>();
             if (!string.IsNullOrEmpty(textFilter))
             {
                 var contextFilterMatches = Regex.Matches(textFilter, CONTEXT_FILTER_PATTERN);
-                var contextFilters = new List<string>();
-
                 foreach (Match match in contextFilterMatches)
                 {
                     var contextToFilter = match.Groups[1].Value;
                     contextFilters.Add(contextToFilter);
                 }
+            }
 
+            // If filtering by context, use optimized lookup
+            if (contextFilters.Count > 0)
+            {
+                foreach (var context in contextFilters)
+                {
+                    if (_logsByContext.ContainsKey(context))
+                    {
+                        filteredLogs.AddRange(_logsByContext[context]);
+                    }
+                }
+            }
+            else
+            {
+                // Otherwise, do standard level filtering
                 foreach (var level in _logsByLevel.Keys)
                 {
                     if (IsFilterActive(level))
                     {
-                        foreach (var log in _logsByLevel[level])
-                        {
-                            if (contextFilters.Contains(log.Context))
-                            {
-                                filteredLogs.Add(log);
-                            }
-                        }
+                        filteredLogs.AddRange(_logsByLevel[level]);
                     }
-                }
-
-                return filteredLogs;
-            }
-
-            foreach(var level in _logsByLevel.Keys)
-            {
-                if (IsFilterActive(level))
-                {
-                    filteredLogs.AddRange(_logsByLevel[level]);
                 }
             }
 
