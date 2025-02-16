@@ -5,51 +5,50 @@
     border-bottom-color: rgb(41, 40, 40);
     padding-bottom: 0;
     margin-bottom: 0;
-    height: 30px;
     align-items: center;
-    min-height: 30px;
-    padding-right: 20px;
+    min-height: 25px;
+    max-height: 25px;
+    background-color: rgba(60, 60, 60, 255);
 }
 
-.toolbar .searchbar {
+.searchbar {
     flex-grow: 1;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-right: 60px;
-    margin-left: 60px;
 }
 
 .toolbar-button {
-    flex-direction: row;
-    justify-content: center;
-    font-size: 12px;
-    -unity-text-align: middle-center;
-    width: 25px;
-    align-items: center;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-right-width: 1px;
     border-left-color: rgb(41, 40, 40);
-    border-left-width: 2px;
-    border-right-width: 2px;
-    flex-shrink: 0.5;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
     border-right-color: rgb(41, 40, 40);
     border-top-color: rgb(41, 40, 40);
     border-bottom-color: rgb(41, 40, 40);
-    height: 25px;
-    margin-left: 2px;
-    margin-right: 2px;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    height: 100%;
+    -unity-text-align: middle-center;
+    justify-content: center;
+    border-left-width: 0;
+    font-size: 11px;
+}
+
+.toolbar-button-first {
+    border-left-width: 1px;
+    border-left-color: rgb(41, 40, 40);
+    border-right-color: rgb(41, 40, 40);
+    border-top-color: rgb(41, 40, 40);
+    border-bottom-color: rgb(41, 40, 40);
+}
+
+.toolbar-button-small {
+    max-width: 25px;
+    min-width: 25px;
 }
 
 .toolbar-button:hover {
-    background-color: rgb(84, 78, 78);
+    background-color: rgb(79, 79, 79);
+}
+
+.toolbar-button:active {
+    background-color: rgba(118, 115, 115, 255);
 }
 
 .log-view {
@@ -72,6 +71,8 @@
     flex-direction: row;
     font-size: 11px;
     opacity: 1;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .log-element-even {
@@ -86,14 +87,11 @@
 }
 
 .log-element:hover {
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: rgb(93, 147, 188);
-    border-right-color: rgb(93, 147, 188);
-    border-top-color: rgb(93, 147, 188);
-    border-bottom-color: rgb(93, 147, 188);
+    background-color: rgb(69, 89, 103);
+}
+
+.log-element:active {
+    background-color: rgb(81, 122, 154);
 }
 
 .log-text {
