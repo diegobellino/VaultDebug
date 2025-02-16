@@ -14,6 +14,8 @@ namespace VaultDebug.Console.Editor
 
         public const string TOOLBAR_CLASS_NAME = "toolbar";
         public const string TOOLBAR_BUTTON_CLASS_NAME = "toolbar-button";
+        public const string TOOLBAR_BUTTON_SMALL_CLASS_NAME = "toolbar-button-small";
+        public const string TOOLBAR_BUTTON_FIRST_CLASS_NAME = "toolbar-button-first";
 
         public const string ERROR_BUTTON_CLASS_NAME = "error-button";
         public const string WARNING_BUTTON_CLASS_NAME = "warning-button";

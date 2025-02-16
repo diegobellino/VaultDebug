@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using UnityEngine.Assertions;
+using VaultDebug.Console.Editor.Utils;
 using VaultDebug.Logging.Runtime;
 
 namespace VaultDebug.Console.Editor
@@ -15,11 +15,19 @@ namespace VaultDebug.Console.Editor
 
         const string ACTIVE_FILTERS_KEY = "Vault.Logging.VaultConsoleEditor";
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
+        const int MAX_LOGS = 1000;
 
         public Action OnLogsChanged;
 
         LogLevel _activeFilters;
-        Dictionary<int, VaultLog> _allLogsById = new();
+        Dictionary<LogLevel, List<VaultLog>> _logsByLevel = new()
+        {
+            { LogLevel.Info, new List<VaultLog>() },
+            { LogLevel.Debug, new List<VaultLog>() },
+            { LogLevel.Warn, new List<VaultLog>() },
+            { LogLevel.Error, new List<VaultLog>() },
+            { LogLevel.Exception, new List<VaultLog>() }
+        };
         List<IVaultLogListener> _listeners = new();
 
         int _logCount;
@@ -33,15 +41,15 @@ namespace VaultDebug.Console.Editor
 
         public void Init()
         {
-            Application.logMessageReceived += HandleUnityLog;
+            Application.logMessageReceivedThreaded += HandleUnityLog;
             AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
             CompilationPipeline.assemblyCompilationFinished += HandleCompilationLogs;
-            VaultLogDispatcher.Instance.RegisterHandler(this);
+            VaultLogDispatcher.RegisterHandler(this);
 
             ReadPreferences();
         }
 
-        public void RegisterListener(IVaultLogListener listener)
+        public void RegisterLogListener(IVaultLogListener listener)
         {
             if (!_listeners.Contains(listener))
             {
@@ -49,7 +57,7 @@ namespace VaultDebug.Console.Editor
             }
         }
 
-        public void UnregisterListener(IVaultLogListener listener)
+        public void UnregisterLogListener(IVaultLogListener listener)
         {
             if (_listeners.Contains(listener))
             {
@@ -59,14 +67,36 @@ namespace VaultDebug.Console.Editor
 
         #region LOGGING
 
-        public void HandleVaultLog(VaultLog log)
+        public void HandleLog(VaultLog log)
         {
-            _allLogsById.Add(_logCount, log);
+            var logs = _logsByLevel[log.Level];
+            logs.Add(log);
             _logCount++;
+
+            if (_logCount > MAX_LOGS)
+            {
+                logs.RemoveAt(0); // Remove oldest log
+            }
+
             RefreshListeners();
         }
 
         void HandleUnityLog(string logMessage, string stackTrace, LogType type)
+        {
+            if (Application.isPlaying)
+            {
+                VaultDebugMainThreadDispatcher.Instance().Enqueue(() =>
+                {
+                    ProcessUnityLog(logMessage, stackTrace, type);
+                });
+            }
+            else
+            {
+                ProcessUnityLog(logMessage, stackTrace, type);
+            }
+        }
+
+        void ProcessUnityLog(string logMessage, string stackTrace, LogType type)
         {
             var assignedLevel = type switch
             {
@@ -77,14 +107,15 @@ namespace VaultDebug.Console.Editor
                 _ => LogLevel.Info
             };
 
-            // Discard log, as it's a compiler error and will be handled differently
+            // Filtrar errores de compilación para evitar duplicados
             if (logMessage.IsMatch(COMPILER_MESSAGE_PATTERN))
             {
                 return;
             }
 
-            var log = new VaultLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
-            _allLogsById.Add(_logCount, log);
+
+            var log = VaultLogPool.GetLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
+            _logsByLevel[log.Level].Add(log);
             _logCount++;
 
             RefreshListeners();
@@ -108,29 +139,26 @@ namespace VaultDebug.Console.Editor
                 var line = matchedGroups[2].ToString();
                 var message = matchedGroups[3].ToString();
 
-                var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, path + $"(line {line})");
-                _allLogsById.Add(_logCount, log);
+
                 _logCount++;
+
+                var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, path + $"(line {line})");
+                _logsByLevel[log.Level].Add(log);
             }
 
             RefreshListeners();
         }
 
-        public Dictionary<int, VaultLog> GetLogsFiltered()
+        public List<VaultLog> GetLogsFiltered()
         {
-            var filteredLogs = new Dictionary<int, VaultLog>();
+            var filteredLogs = new List<VaultLog>();
 
-            foreach(var kvp in _allLogsById)
+            foreach(var level in _logsByLevel.Keys)
             {
-                var id = kvp.Key;
-                var log = kvp.Value;
-
-                if (!IsFilterActive(log.Level))
+                if (IsFilterActive(level))
                 {
-                    continue;
+                    filteredLogs.AddRange(_logsByLevel[level]);
                 }
-                
-                filteredLogs.Add(id, log);
             }
 
             return filteredLogs;
@@ -138,14 +166,25 @@ namespace VaultDebug.Console.Editor
 
         public VaultLog GetLogWithId(int id)
         {
-            Assert.IsTrue(_allLogsById.TryGetValue(id, out var log), $"Log with id {id} not found");
-            return log;
+            foreach (var logsInLevel in _logsByLevel.Values)
+            {
+                foreach (var log in logsInLevel)
+                {
+                    if (log.Id == id)
+                    {
+                        return log;
+                    }
+                }
+            }
+
+            throw new KeyNotFoundException($"VaultConsole could not find a log with id {id}");
         }
 
 
         void ClearLogs()
         {
-            _allLogsById.Clear();
+            _logsByLevel.Clear();
+            _logCount = 0;
             RefreshListeners();
         }
 
@@ -213,10 +252,9 @@ namespace VaultDebug.Console.Editor
             {
                 WritePreferences();
     
-                VaultLogDispatcher.Instance.UnregisterHandler(this);
+                VaultLogDispatcher.UnregisterHandler(this);
 
-                _allLogsById.Clear();
-                _allLogsById = null;
+                _logsByLevel.Clear();
             }
         }
 

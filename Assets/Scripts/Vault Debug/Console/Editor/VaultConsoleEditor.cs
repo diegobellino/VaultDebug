@@ -44,7 +44,7 @@ namespace VaultDebug.Console.Editor
         void CreateGUI()
         {
             _logHandler.Init();
-            _logHandler.RegisterListener(this);
+            _logHandler.RegisterLogListener(this);
             
             var root = rootVisualElement;
             _visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(Elements.MAIN_VIEW_PATH).Instantiate();
@@ -71,7 +71,7 @@ namespace VaultDebug.Console.Editor
 
         void OnDestroy()
         {
-            _logHandler.UnregisterListener(this);
+            _logHandler.UnregisterLogListener(this);
             _logHandler.Dispose();
         }
 
@@ -119,10 +119,10 @@ namespace VaultDebug.Console.Editor
             var toolbar = new VisualElement();
             toolbar.AddToClassList(Elements.TOOLBAR_CLASS_NAME);
 
-            _filterButtons[LogLevel.Error] = CreateToolbarButton(Elements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
-            _filterButtons[LogLevel.Warn] = CreateToolbarButton(Elements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
-            _filterButtons[LogLevel.Debug] = CreateToolbarButton(Elements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
-            _filterButtons[LogLevel.Info] = CreateToolbarButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); });
+            _filterButtons[LogLevel.Error] = CreateFilterButton(Elements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
+            _filterButtons[LogLevel.Warn] = CreateFilterButton(Elements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
+            _filterButtons[LogLevel.Debug] = CreateFilterButton(Elements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
+            _filterButtons[LogLevel.Info] = CreateFilterButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); }, true);
 
             var searchbar = new ToolbarSearchField();
             searchbar.AddToClassList(Elements.SEARCHBAR_CLASS_NAME);
@@ -135,14 +135,37 @@ namespace VaultDebug.Console.Editor
             
             toolbar.Add(searchbar);
 
+            var errorPauseButton = new Button();
+            errorPauseButton.text = "Error Pause";
+            errorPauseButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
+            errorPauseButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            toolbar.Add(errorPauseButton);
+
+            var collapseButton = new Button();
+            collapseButton.text = "Collapse";
+            collapseButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
+            collapseButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            toolbar.Add(collapseButton);
+
+            var clearButton = new Button();
+            clearButton.text = "Clear";
+            clearButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
+            clearButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            toolbar.Add(clearButton);
+
             _visualTree.Add(toolbar);
         }
 
-        Button CreateToolbarButton(string name, string label, Action onClick)
+        Button CreateFilterButton(string name, string label, Action onClick, bool isFirst = false)
         {
             var button = new Button();
             button.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
+            button.AddToClassList(Elements.TOOLBAR_BUTTON_SMALL_CLASS_NAME);
             button.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            if (isFirst)
+            {
+                button.AddToClassList(Elements.TOOLBAR_BUTTON_FIRST_CLASS_NAME);
+            }
             button.clicked += onClick;
             button.name = name;
             button.Add(new Label(label));
@@ -368,12 +391,9 @@ namespace VaultDebug.Console.Editor
             var isEven = false;
             var filteredLogs = _logHandler.GetLogsFiltered();
 
-            foreach (var kvp in filteredLogs)
+            foreach (var log in filteredLogs)
             {
-                var id = kvp.Key;
-                var log = kvp.Value;
-
-                var logElement = CreateLogVisualElement(log, id, isEven);
+                var logElement = CreateLogVisualElement(log, log.Id, isEven);
 
                 logContainer.Add(logElement);
 

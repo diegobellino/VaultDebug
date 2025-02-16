@@ -1,30 +1,5 @@
-using System;
-
 namespace VaultDebug.Logging.Runtime
 {
-    public struct VaultLog
-    {
-        public LogLevel Level { get; private set; }
-
-        public string Context { get; private set; }
-
-        public string Message { get; private set; }
-
-        public string TimeStamp { get; private set; }
-
-        public string Stacktrace { get; private set; }
-
-        public VaultLog(LogLevel level, string context, string message, string stackTrace)
-        {
-            Level = level;
-            Context = context;
-            Message = message;
-            Stacktrace = stackTrace;
-
-            TimeStamp = DateTime.Now.ToLongTimeString();
-        }
-    }
-
     public sealed class VaultLogger
     {
 
@@ -62,9 +37,9 @@ namespace VaultDebug.Logging.Runtime
         void Log(LogLevel level, string message)
         {
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            var log = new VaultLog(level, _context, message, stackTrace);
+            var log = VaultLogPool.GetLog(level, _context, message, stackTrace);
 
-            VaultLogDispatcher.Instance.DispatchLog(log);
+            VaultLogDispatcher.DispatchLog(log);
         }
     }
 }

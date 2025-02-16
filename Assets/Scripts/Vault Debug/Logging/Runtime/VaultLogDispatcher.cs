@@ -3,36 +3,29 @@ using System.Linq;
 
 namespace VaultDebug.Logging.Runtime
 {
-    public sealed class VaultLogDispatcher
+    public static class VaultLogDispatcher
     {
 
         #region VARIABLES
 
-        readonly static VaultLogDispatcher _instance = new();
-
-        /// <summary>
-        /// Retrieves the unique static instance of the log dispatcher
-        /// </summary>
-        public static VaultLogDispatcher Instance => _instance;
-
-        Dictionary<IVaultLogHandler, string[]> _handlers = new();
+        static Dictionary<IVaultLogHandler, string[]> _handlers = new();
 
         #endregion
 
-        VaultLogDispatcher()
+        static VaultLogDispatcher()
         {
 
         }
 
-        public void RegisterHandler(IVaultLogHandler handler, string[] forContexts = null)
+        public static void RegisterHandler(IVaultLogHandler handler, string[] listeningContexts = null)
         {
             if (!_handlers.ContainsKey(handler))
             {
-                _handlers.Add(handler, forContexts);
+                _handlers.Add(handler, listeningContexts);
             }
         }
 
-        public void UnregisterHandler(IVaultLogHandler handler)
+        public static void UnregisterHandler(IVaultLogHandler handler)
         {
             if (_handlers.ContainsKey(handler))
             {
@@ -40,7 +33,7 @@ namespace VaultDebug.Logging.Runtime
             }
         }
 
-        public void DispatchLog(VaultLog log)
+        public static void DispatchLog(VaultLog log)
         {
             foreach(var handlerKeyValue in _handlers)
             {
@@ -49,7 +42,7 @@ namespace VaultDebug.Logging.Runtime
                 
                 if (contexts == null || contexts.Any(item => item.Equals(log.Context)))
                 {
-                    handler.HandleVaultLog(log);
+                    handler.HandleLog(log);
                 }
             }
         }
