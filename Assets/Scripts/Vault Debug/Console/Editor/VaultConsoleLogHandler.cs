@@ -16,10 +16,13 @@ namespace VaultDebug.Console.Editor
 
         #region VARIABLES
 
-        const string ACTIVE_FILTERS_KEY = "Vault.Logging.VaultConsoleEditor";
+        const string ACTIVE_FILTERS_KEY = "VaultDebug.FilterSettings.ActiveFilters";
+
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
         const string CONTEXT_FILTER_PATTERN = @"@context:\s*""(.*?)""|@context:\s*(\S+)";
+
         const int MAX_LOGS = 1000;
+
         const string LOG_FILE_PATH = "vault_logs.json";
         string FullLogPath => Path.Combine(Application.persistentDataPath, LOG_FILE_PATH);
 
@@ -74,7 +77,7 @@ namespace VaultDebug.Console.Editor
             }
         }
 
-        #region LOAD/SAVE
+        #region LOAD/SAVE/EXPORT
 
         void SaveLogs()
         {
@@ -107,6 +110,23 @@ namespace VaultDebug.Console.Editor
             }
 
             RefreshListeners();
+        }
+
+        public void ExportLogs()
+        {
+            var logFilePath = Path.Combine(Application.persistentDataPath, "vault_logs.txt");
+
+            var logStrings = new List<string>();
+            foreach (var logs in _logsByLevel.Values)
+            {
+                foreach (var log in logs)
+                {
+                    logStrings.Add($"[{log.TimeStamp}] {log.Context}: {log.Message}");
+                }
+            }
+
+            File.WriteAllLines(logFilePath, logStrings);
+            VaultDebugLoggerInternal.Logger.Info($"Logs exported to: {logFilePath}");
         }
 
         #endregion
@@ -186,10 +206,9 @@ namespace VaultDebug.Console.Editor
                     continue;
                 }
 
-                // Patter has 3 groups: Script path, code line and message
+                // Pattern has 3 groups: Script path, code line and message
                 var matchedGroups = compilerMessage.message.MatchOnce(COMPILER_MESSAGE_PATTERN);
-                // Regex returns raw string as first match for some reason
-                var rawMessage = matchedGroups[0].ToString();
+
                 var path = matchedGroups[1].ToString();
                 var line = matchedGroups[2].ToString();
                 var message = matchedGroups[3].ToString();
@@ -197,7 +216,7 @@ namespace VaultDebug.Console.Editor
 
                 _logCount++;
 
-                var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, path + $"(line {line})");
+                var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, $"{path}:{line}");
                 _logsByLevel[log.Level].Add(log);
             }
 
