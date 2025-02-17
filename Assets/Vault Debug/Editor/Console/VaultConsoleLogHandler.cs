@@ -4,12 +4,11 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using VaultDebug.Console.Editor.Utils;
-using VaultDebug.Logging.Runtime;
+using VaultDebug.Runtime.Logger;
 using Newtonsoft.Json;
 using System.IO;
 
-namespace VaultDebug.Console.Editor
+namespace VaultDebug.Editor.Console
 {
     public class VaultConsoleLogHandler : IDisposable, IVaultLogHandler
     {
@@ -160,7 +159,7 @@ namespace VaultDebug.Console.Editor
         {
             if (Application.isPlaying)
             {
-                VaultDebugMainThreadDispatcher.Instance().Enqueue(() =>
+                VaultDebugLoggerMainThreadDispatcher.Instance().Enqueue(() =>
                 {
                     ProcessUnityLog(logMessage, stackTrace, type);
                 });

@@ -4,12 +4,11 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System;
 using System.Collections.Generic;
-using Elements = VaultDebug.Console.Editor.VaultConsoleElements;
-using VaultDebug.Logging.Runtime;
+using VaultDebug.Runtime.Logger;
 using System.Text.RegularExpressions;
 using UnityEditorInternal;
 
-namespace VaultDebug.Console.Editor
+namespace VaultDebug.Editor.Console
 {
     public class VaultConsoleEditor : EditorWindow, IVaultLogListener
     {
@@ -33,14 +32,15 @@ namespace VaultDebug.Console.Editor
 
         #endregion
 
-        [MenuItem("Vault Console/Console Window")]
+        [MenuItem("Vault Debug/Console/Open Window")]
         public static void CreateWindow()
         {
-            var window = GetWindow(typeof(VaultConsoleEditor));
-            window.titleContent = new GUIContent("Vault Console");
+
+            var window = GetWindow<VaultConsoleEditor>("Vault Console", true);
+            window.Show();
         }
 
-        [MenuItem("Vault Console/Debug/Generate test logs")]
+        [MenuItem("Vault Debug/Console/Generate test logs")]
         public static void TestLogs()
         {
             VaultDebugLoggerInternal.Logger.Debug("Long debug log from internal logger - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce at dignissim odio. Suspendisse sed consequat justo. Phasellus consequat, est vitae auctor mollis, mi nunc volutpat tortor, sed auctor magna dui vitae nulla. Curabitur eu tincidunt dui. Donec condimentum libero sit amet magna rhoncus, eu tristique sapien vestibulum. Phasellus volutpat, eros at auctor placerat, ipsum felis venenatis velit, eget mattis turpis tortor vel diam. Nulla eu mauris eu libero congue rhoncus ac sed nunc. Duis maximus ultrices elit, in varius ipsum sodales in. Aenean nisl erat, porttitor nec laoreet non, placerat dignissim enim. ");
@@ -55,8 +55,17 @@ namespace VaultDebug.Console.Editor
             _logHandler.RegisterLogListener(this);
             
             var root = rootVisualElement;
-            _visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(Elements.MAIN_VIEW_PATH).Instantiate();
+            var asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.MAIN_VIEW_PATH);
+
+            if (asset == null)
+            {
+                Debug.LogError($"Failed to load UI asset: {VaultConsoleElements.MAIN_VIEW_PATH}");
+                return;
+            }
+
+            _visualTree = asset.Instantiate();
             _visualTree.style.height = new StyleLength(Length.Percent(100));
+
 
             AddToolbarToTree();
             AddMainViewToTree();
@@ -89,10 +98,10 @@ namespace VaultDebug.Console.Editor
         void AddMainViewToTree()
         {
             _mainView = new VisualElement();
-            _mainView.AddToClassList(Elements.MAIN_VIEW_CLASS_NAME);
+            _mainView.AddToClassList(VaultConsoleElements.MAIN_VIEW_CLASS_NAME);
 
             _logView  = new ScrollView();
-            _logView.AddToClassList(Elements.LOG_VIEW_CLASS_NAME);
+            _logView.AddToClassList(VaultConsoleElements.LOG_VIEW_CLASS_NAME);
 
             _mainView.Add(_logView);
             _visualTree.Add(_mainView);
@@ -100,9 +109,9 @@ namespace VaultDebug.Console.Editor
 
         void AddDetailsViewToTree()
         {
-            _detailsView = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(Elements.DETAILS_VIEW_PATH).Instantiate();
+            _detailsView = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.DETAILS_VIEW_PATH).Instantiate();
             
-            var hideButton = _detailsView.Q<Button>(Elements.DETAILS_HIDE_BUTTON_CLASS_NAME);
+            var hideButton = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_HIDE_BUTTON_CLASS_NAME);
             hideButton.clicked += () => {
                 HideDetailsView();
             };
@@ -116,15 +125,15 @@ namespace VaultDebug.Console.Editor
             _filterButtons.Clear();
             // Get parent element
             var toolbar = new VisualElement();
-            toolbar.AddToClassList(Elements.TOOLBAR_CLASS_NAME);
+            toolbar.AddToClassList(VaultConsoleElements.TOOLBAR_CLASS_NAME);
 
-            _filterButtons[LogLevel.Error] = CreateFilterButton(Elements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
-            _filterButtons[LogLevel.Warn] = CreateFilterButton(Elements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
-            _filterButtons[LogLevel.Info] = CreateFilterButton(Elements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); } );
-            _filterButtons[LogLevel.Debug] = CreateFilterButton(Elements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
+            _filterButtons[LogLevel.Error] = CreateFilterButton(VaultConsoleElements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
+            _filterButtons[LogLevel.Warn] = CreateFilterButton(VaultConsoleElements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
+            _filterButtons[LogLevel.Info] = CreateFilterButton(VaultConsoleElements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); } );
+            _filterButtons[LogLevel.Debug] = CreateFilterButton(VaultConsoleElements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
 
             var searchbar = new ToolbarSearchField();
-            searchbar.AddToClassList(Elements.SEARCHBAR_CLASS_NAME);
+            searchbar.AddToClassList(VaultConsoleElements.SEARCHBAR_CLASS_NAME);
             searchbar.name = "searchbar";
             searchbar.RegisterValueChangedCallback(OnFilterChanged);
 
@@ -137,15 +146,15 @@ namespace VaultDebug.Console.Editor
 
             var exportButton = new Button();
             exportButton.text = "Export";
-            exportButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
-            exportButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            exportButton.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
+            exportButton.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_CLASS_NAME);
             exportButton.clicked += _logHandler.ExportLogs;
             toolbar.Add(exportButton);
 
             var clearButton = new Button();
             clearButton.text = "Clear";
-            clearButton.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
-            clearButton.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            clearButton.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
+            clearButton.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_CLASS_NAME);
             clearButton.clicked += ClearLogs;
             toolbar.Add(clearButton);
 
@@ -155,9 +164,9 @@ namespace VaultDebug.Console.Editor
         Button CreateFilterButton(string name, string label, Action onClick)
         {
             var button = new Button();
-            button.RemoveFromClassList(Elements.UNITY_BUTTON_CLASS_NAME);
-            button.AddToClassList(Elements.TOOLBAR_BUTTON_SMALL_CLASS_NAME);
-            button.AddToClassList(Elements.TOOLBAR_BUTTON_CLASS_NAME);
+            button.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
+            button.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_SMALL_CLASS_NAME);
+            button.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_CLASS_NAME);
             button.clicked += onClick;
             button.name = name;
             button.Add(new Label(label));
@@ -167,24 +176,24 @@ namespace VaultDebug.Console.Editor
 
         void ShowDetailsView()
         {
-            _detailsView.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            _detailsView.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
             var log = _logHandler.GetLogWithId(_selectedLogId);
-            var timestampTag = _detailsView.Q<Label>(Elements.DETAILS_TIMESTAMP_TAG_NAME);
+            var timestampTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_TIMESTAMP_TAG_NAME);
             timestampTag.text = log.TimeStamp;
 
-            var contextTag = _detailsView.Q<Label>(Elements.DETAILS_CONTEXT_TAG_NAME);
+            var contextTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_CONTEXT_TAG_NAME);
             contextTag.text = log.Context;
 
-            var fullLog = _detailsView.Q<Label>(Elements.DETAILS_FULL_LOG_CLASS_NAME);
+            var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
             fullLog.text = log.Message;
-            fullLog.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            fullLog.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-            var smartTab = _detailsView.Q<Button>(Elements.DETAILS_SMART_TAB_NAME);
-            var smartContent = _detailsView.Q(Elements.DETAILS_SMART_STACKTRACE_NAME);
+            var smartTab = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_SMART_TAB_NAME);
+            var smartContent = _detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);
 
-            var rawTab = _detailsView.Q<Button>(Elements.DETAILS_RAW_TAB_NAME);
-            var rawContent = _detailsView.Q(Elements.DETAILS_RAW_STACKTRACE_NAME);
+            var rawTab = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_RAW_TAB_NAME);
+            var rawContent = _detailsView.Q(VaultConsoleElements.DETAILS_RAW_STACKTRACE_NAME);
 
             smartTab.clicked += () => SelectSmartTab();
             rawTab.clicked += () => SelectRawTab();
@@ -231,11 +240,11 @@ namespace VaultDebug.Console.Editor
                     }
                 }
 
-                rawTab.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
-                rawContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                rawTab.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                rawContent.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-                smartTab.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
-                smartContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                smartTab.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                smartContent.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
             }
 
             void SelectRawTab()
@@ -247,27 +256,27 @@ namespace VaultDebug.Console.Editor
 
                 rawContent.Add(textElement);
 
-                rawTab.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
-                rawContent.RemoveFromClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                rawTab.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                rawContent.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-                smartTab.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
-                smartContent.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+                smartTab.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                smartContent.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
             }
         }
 
         void HideDetailsView()
         {
-            _detailsView.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            _detailsView.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-            _focusedLogElement?.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+            _focusedLogElement?.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
             _focusedLogElement = null;
             _selectedLogId = -1;
 
-            var stacktrace = _detailsView.Q(Elements.DETAILS_SMART_STACKTRACE_NAME);
-            stacktrace.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            var stacktrace = _detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);
+            stacktrace.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-            var fullLog = _detailsView.Q<Label>(Elements.DETAILS_FULL_LOG_CLASS_NAME);
-            fullLog.AddToClassList(Elements.HIDDEN_ELEMENT_CLASS_NAME);
+            var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
+            fullLog.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
         }
 
         VisualElement CreateURLText(string text, Action OnClick)
@@ -283,24 +292,24 @@ namespace VaultDebug.Console.Editor
         {
             var logElement = new VisualElement();
 
-            logElement.AddToClassList(Elements.LOG_ELEMENT_CLASS_NAME);
+            logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_CLASS_NAME);
 
             if (log.Level == LogLevel.Exception)
             {
-                logElement.AddToClassList(Elements.LOG_ELEMENT_CRITICAL_CLASS_NAME);
+                logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_CRITICAL_CLASS_NAME);
             }
             else if (isEven)
             {
-                logElement.AddToClassList(Elements.LOG_ELEMENT_EVEN_CLASS_NAME);
+                logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_EVEN_CLASS_NAME);
             }
 
             var logIconClass = log.Level switch
             {
-                LogLevel.Info => Elements.INFO_ICON_CLASS_NAME,
-                LogLevel.Debug => Elements.DEBUG_ICON_CLASS_NAME,
-                LogLevel.Warn => Elements.WARNING_ICON_CLASS_NAME,
-                LogLevel.Error or LogLevel.Exception => Elements.ERROR_ICON_CLASS_NAME,
-                _ => Elements.INFO_ICON_CLASS_NAME
+                LogLevel.Info => VaultConsoleElements.INFO_ICON_CLASS_NAME,
+                LogLevel.Debug => VaultConsoleElements.DEBUG_ICON_CLASS_NAME,
+                LogLevel.Warn => VaultConsoleElements.WARNING_ICON_CLASS_NAME,
+                LogLevel.Error or LogLevel.Exception => VaultConsoleElements.ERROR_ICON_CLASS_NAME,
+                _ => VaultConsoleElements.INFO_ICON_CLASS_NAME
             };
 
             var logIconLabel = log.Level switch
@@ -311,18 +320,18 @@ namespace VaultDebug.Console.Editor
                 LogLevel.Error or LogLevel.Exception => new Label("E"),
                 _ => new Label("I")
             };
-            logIconLabel.AddToClassList(Elements.LOG_ICON_CLASS_NAME);
+            logIconLabel.AddToClassList(VaultConsoleElements.LOG_ICON_CLASS_NAME);
             logIconLabel.AddToClassList(logIconClass);
 
             var logMessageLabel = new Label(log.Message);
-            logMessageLabel.AddToClassList(Elements.LOG_TEXT_CLASS_NAME);
+            logMessageLabel.AddToClassList(VaultConsoleElements.LOG_TEXT_CLASS_NAME);
 
             var contextTag = new Label(log.Context);
-            contextTag.AddToClassList(Elements.LOG_TAG_CLASS_NAME);
+            contextTag.AddToClassList(VaultConsoleElements.LOG_TAG_CLASS_NAME);
 
             if (id == _selectedLogId)
             {
-                logElement.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                logElement.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
                 _focusedLogElement = logElement;
             }
 
@@ -334,12 +343,12 @@ namespace VaultDebug.Console.Editor
                 {
                     if (_focusedLogElement != null)
                     {
-                        _focusedLogElement.RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                        _focusedLogElement.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
                     }
 
                     _selectedLogId = id;
                     _focusedLogElement = logElement;
-                    _focusedLogElement.AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                    _focusedLogElement.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
 
                     OnLogSelected(log);
                 }));
@@ -388,11 +397,11 @@ namespace VaultDebug.Console.Editor
             {
                 if (_logHandler.IsFilterActive(level))
                 {
-                    _filterButtons[level].AddToClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                    _filterButtons[level].AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
                 }
                 else
                 {
-                    _filterButtons[level].RemoveFromClassList(Elements.ACTIVE_ELEMENT_CLASS_NAME);
+                    _filterButtons[level].RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
                 }
             }
 
@@ -411,7 +420,7 @@ namespace VaultDebug.Console.Editor
 
         public void RefreshLogs()
         {
-            var logContainer = _mainView.Q(classes: Elements.LOG_VIEW_CLASS_NAME);
+            var logContainer = _mainView.Q(classes: VaultConsoleElements.LOG_VIEW_CLASS_NAME);
 
             var existingLogs = logContainer.childCount;
             var filteredLogs = _logHandler.GetLogsFiltered(_textFilter);

@@ -1,8 +1,12 @@
 {
-    "name": "VaultDebug.Logging.Runtime",
-    "rootNamespace": "VaultDebug.Logging.Runtime",
-    "references": [],
-    "includePlatforms": [],
+    "name": "VaultDebug.Editor.Console",
+    "rootNamespace": "VaultDebug.Editor.Console",
+    "references": [
+        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

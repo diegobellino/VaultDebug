@@ -1,9 +1,29 @@
-namespace VaultDebug.Console.Editor
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+namespace VaultDebug.Editor.Console
 {
     public static class VaultConsoleElements
     {
-        public const string MAIN_VIEW_PATH = "Assets/Scripts/Vault Debug/Console/Editor/UI Assets/VaultConsoleMainView.uxml";
-        public const string DETAILS_VIEW_PATH = "Assets/Scripts/Vault Debug/Console/Editor/UI Assets/VaultConsoleDetailsView.uxml";
+        private static string PackagePath => GetPackagePath();
+        public static string MAIN_VIEW_PATH => Path.Combine(PackagePath, "UI/VaultConsoleMainView.uxml");
+        public static string DETAILS_VIEW_PATH => Path.Combine(PackagePath, "UI/VaultConsoleDetailsView.uxml");
+
+
+        private static string GetPackagePath()
+        {
+            // Finds the path dynamically
+            string[] results = AssetDatabase.FindAssets("VaultConsoleElements");
+            if (results.Length > 0)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(results[0]);
+                return Path.GetDirectoryName(assetPath).Replace("\\", "/"); // Normalize path
+            }
+
+            Debug.LogError("VaultDebug package path could not be found!");
+            return "Packages/com.vaultdebug.logging"; // Default fallback
+        }
 
         #region MAIN VIEW
 

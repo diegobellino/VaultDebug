@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace VaultDebug.Logging.Runtime
+namespace VaultDebug.Runtime.Logger
 {
     public static class StringExtensions
     {

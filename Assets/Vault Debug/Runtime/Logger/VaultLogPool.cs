@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VaultDebug.Logging.Runtime
+namespace VaultDebug.Runtime.Logger
 {
     public static class VaultLogPool
     {

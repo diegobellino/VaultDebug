@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VaultDebug.Logging.Runtime
+namespace VaultDebug.Runtime.Logger
 {
     public struct VaultLog: IComparable<VaultLog>
     {

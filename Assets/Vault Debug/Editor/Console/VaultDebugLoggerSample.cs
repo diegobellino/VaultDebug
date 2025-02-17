@@ -1,7 +1,6 @@
-﻿
-using VaultDebug.Logging.Runtime;
+﻿using VaultDebug.Runtime.Logger;
 
-namespace VaultDebug.Console.Editor
+namespace VaultDebug.Editor.Console
 {
     public static class VaultDebugLoggerSample
     {

@@ -1,4 +1,4 @@
-namespace VaultDebug.Logging.Runtime
+namespace VaultDebug.Runtime.Logger
 {
     public sealed class VaultLogger
     {

@@ -2,20 +2,20 @@
 using System.Collections.Concurrent;
 using UnityEngine;
 
-namespace VaultDebug.Console.Editor.Utils
+namespace VaultDebug.Runtime.Logger
 {
-    class VaultDebugMainThreadDispatcher: MonoBehaviour
+    public class VaultDebugLoggerMainThreadDispatcher: MonoBehaviour
     {
         private static readonly ConcurrentQueue<Action> _executionQueue = new();
 
-        private static VaultDebugMainThreadDispatcher _instance;
+        private static VaultDebugLoggerMainThreadDispatcher _instance;
 
-        public static VaultDebugMainThreadDispatcher Instance()
+        public static VaultDebugLoggerMainThreadDispatcher Instance()
         {
             if (_instance == null)
             {
-                var obj = new GameObject("VaultDebugMainThreadDispatcher");
-                _instance = obj.AddComponent<VaultDebugMainThreadDispatcher>();
+                var obj = new GameObject("VaultDebugLoggerMainThreadDispatcher");
+                _instance = obj.AddComponent<VaultDebugLoggerMainThreadDispatcher>();
                 DontDestroyOnLoad(obj);
             }
 
