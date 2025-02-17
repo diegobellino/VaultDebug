@@ -15,7 +15,6 @@ namespace VaultDebug.Editor.Console
 
         #region VARIABLES
 
-        const string ACTIVE_FILTERS_KEY = "VaultDebug.FilterSettings.ActiveFilters";
 
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
         const string CONTEXT_FILTER_PATTERN = @"@context:\s*""(.*?)""|@context:\s*(\S+)";
@@ -113,7 +112,7 @@ namespace VaultDebug.Editor.Console
 
         public void ExportLogs()
         {
-            var logFilePath = Path.Combine(Application.persistentDataPath, "vault_logs.txt");
+            var logFilePath = Path.Combine(EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH), "vault_logs.txt");
 
             var logStrings = new List<string>();
             foreach (var logs in _logsByLevel.Values)
@@ -328,12 +327,13 @@ namespace VaultDebug.Editor.Console
 
         void ReadPreferences()
         {
-            _activeFilters = (LogLevel)EditorPrefs.GetInt(ACTIVE_FILTERS_KEY, 0);
+            // By default all filters are active
+            _activeFilters = (LogLevel)EditorPrefs.GetInt(Consts.EditorPrefKeys.ACTIVE_FILTERS_KEY, (int)(LogLevel.Debug | LogLevel.Error | LogLevel.Info | LogLevel.Warn |LogLevel.Exception));
         }
 
         void WritePreferences()
         {
-            EditorPrefs.SetInt(ACTIVE_FILTERS_KEY, (int)_activeFilters);
+            EditorPrefs.SetInt(Consts.EditorPrefKeys.ACTIVE_FILTERS_KEY, (int)_activeFilters);
         }
 
         #endregion

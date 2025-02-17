@@ -36,8 +36,9 @@ namespace VaultDebug.Editor.Console
         public static void CreateWindow()
         {
 
-            var window = GetWindow<VaultConsoleEditor>("Vault Console", true);
-            window.Show();
+            var window = GetWindow(typeof(VaultConsoleEditor));
+            window.minSize = new Vector2(700f, 110f);
+            window.titleContent = new GUIContent("Vault Console");
         }
 
         [MenuItem("Vault Debug/Console/Generate test logs")]
