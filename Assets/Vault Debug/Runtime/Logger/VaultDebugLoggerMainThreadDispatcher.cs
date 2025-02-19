@@ -4,35 +4,39 @@ using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
-    public class VaultDebugLoggerMainThreadDispatcher: MonoBehaviour
+    public class VaultDebugLoggerMainThreadDispatcher : MonoBehaviour
+{
+    private static readonly ConcurrentQueue<Action> _executionQueue = new();
+    private static VaultDebugLoggerMainThreadDispatcher _instance;
+    private static Action<GameObject> _dontDestroyOnLoad = obj => DontDestroyOnLoad(obj);
+
+    public static VaultDebugLoggerMainThreadDispatcher Instance(Action<GameObject> dontDestroyOverride = null)
     {
-        private static readonly ConcurrentQueue<Action> _executionQueue = new();
-
-        private static VaultDebugLoggerMainThreadDispatcher _instance;
-
-        public static VaultDebugLoggerMainThreadDispatcher Instance()
+        if (_instance == null)
         {
-            if (_instance == null)
-            {
-                var obj = new GameObject("VaultDebugLoggerMainThreadDispatcher");
-                _instance = obj.AddComponent<VaultDebugLoggerMainThreadDispatcher>();
-                DontDestroyOnLoad(obj);
-            }
+            var obj = new GameObject("VaultDebugLoggerMainThreadDispatcher");
+            _instance = obj.AddComponent<VaultDebugLoggerMainThreadDispatcher>();
 
-            return _instance;
+            if (dontDestroyOverride == null)
+                _dontDestroyOnLoad(obj);
+            else
+                dontDestroyOverride(obj); // Mocked for testing
         }
+        return _instance;
+    }
 
-        public void Enqueue(Action action)
-        {
-             _executionQueue.Enqueue(action);
-        }
+    public void Enqueue(Action action)
+    {
+        _executionQueue.Enqueue(action);
+    }
 
-        private void Update()
+    private void Update()
+    {
+        while (_executionQueue.TryDequeue(out var action))
         {
-            while (_executionQueue.TryDequeue(out var action))
-            {
-                action?.Invoke();
-            }
+            action?.Invoke();
         }
     }
+}
+
 }

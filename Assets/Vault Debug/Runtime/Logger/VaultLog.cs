@@ -2,7 +2,7 @@
 
 namespace VaultDebug.Runtime.Logger
 {
-    public struct VaultLog: IComparable<VaultLog>
+    public class VaultLog: IComparable<VaultLog>
     {
         private static int _nextLogId = 0;
 

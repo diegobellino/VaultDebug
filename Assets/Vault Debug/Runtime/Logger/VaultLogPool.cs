@@ -15,7 +15,7 @@ namespace VaultDebug.Runtime.Logger
                 return log;
             }
 
-            return new VaultLog(level, context, message, stackTrace);
+            return new VaultLog(level, context, message, stackTrace); ;
         }
 
         public static void ReleaseLog(VaultLog log)

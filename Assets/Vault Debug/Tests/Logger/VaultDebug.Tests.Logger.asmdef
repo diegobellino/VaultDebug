@@ -1,0 +1,23 @@
+{
+    "name": "VaultDebug.Tests.Logger",
+    "rootNamespace": "VaultDebug.Tests.Logger",
+    "references": [
+        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "AutoFixture.AutoMoq.dll",
+        "AutoFixture.dll",
+        "Moq.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

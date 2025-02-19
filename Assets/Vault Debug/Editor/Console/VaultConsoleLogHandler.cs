@@ -133,6 +133,24 @@ namespace VaultDebug.Editor.Console
 
         public void HandleLog(VaultLog log)
         {
+            if (!Enum.IsDefined(typeof(LogLevel), log.Level))
+            {
+                Debug.LogWarning($"VaultConsoleLogHandler received an invalid LogLevel: {log.Level}");
+                return; // Ignore invalid log levels
+            }
+
+            if (string.IsNullOrEmpty(log.Message))
+            {
+                Debug.LogWarning("VaultConsoleLogHandler received a log with an empty message.");
+                return; // Ignore empty logs
+            }
+
+            // Ensure context is initialized
+            if (string.IsNullOrEmpty(log.Context))
+            {
+                log = new VaultLog(log.Level, "UnknownContext", log.Message, log.Stacktrace);
+            }
+
             // Store in level-based dictionary (unchanged)
             _logsByLevel[log.Level].Add(log);
 
@@ -278,7 +296,6 @@ namespace VaultDebug.Editor.Console
 
             throw new KeyNotFoundException($"VaultConsole could not find a log with id {id}");
         }
-
 
         public void ClearLogs()
         {

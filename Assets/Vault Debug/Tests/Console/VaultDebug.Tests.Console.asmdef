@@ -1,0 +1,25 @@
+{
+    "name": "VaultDebug.Tests.Console",
+    "rootNamespace": "VaultDebug.Tests.Console",
+    "references": [
+        "GUID:3dfa076e1ef153045939ed6bbb185070",
+        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec",
+        "GUID:856289ae6266b3d4fb367b4fb6810e91"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "AutoFixture.dll",
+        "AutoFixture.AutoMoq.dll",
+        "Moq.dll",
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
