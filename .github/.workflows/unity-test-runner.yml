@@ -1,0 +1,59 @@
+name: Unity Test Runner CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  unity-test:
+    name: Run Unity Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      # Cache the Unity installation to speed up builds
+      - name: Cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      # Install Unity using GameCI
+      - name: Install Unity
+        uses: game-ci/unity-setup@v2
+        with:
+          unityVersion: 2021.3.11f1 # CHANGE WHEN CHANGING UNITY VERSIONS
+          components: editor
+      
+      # Run Unity Edit Mode tests
+      - name: Run Edit Mode Tests
+        uses: game-ci/unity-test-runner@v2
+        with:
+          unityVersion: 2021.3.11f1 # CHANGE WHEN CHANGING UNITY VERSIONS
+          testMode: EditMode
+          coverageOptions: "generateAdditionalMetrics;assemblyFilters:+VaultDebug.Runtime.Logger" # Optional: Enable coverage
+      
+      # Run Unity Play Mode tests
+      - name: Run Play Mode Tests
+        uses: game-ci/unity-test-runner@v2
+        with:
+          unityVersion: 2021.3.11f1
+          testMode: PlayMode
+
+      # Upload test results as artifacts
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: Unity Test Results
+          path: artifacts/
