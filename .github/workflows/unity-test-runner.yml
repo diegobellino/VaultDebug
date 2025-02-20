@@ -1,6 +1,7 @@
 name: Unity Test Runner CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
