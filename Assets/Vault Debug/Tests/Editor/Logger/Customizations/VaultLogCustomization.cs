@@ -1,7 +1,7 @@
 ﻿using AutoFixture;
 using VaultDebug.Runtime.Logger;
 
-namespace VaultDebug.Tests.Logger.Customizations
+namespace VaultDebug.Tests.Editor.Logger.Customizations
 {
     public class VaultLogCustomization : ICustomization
     {

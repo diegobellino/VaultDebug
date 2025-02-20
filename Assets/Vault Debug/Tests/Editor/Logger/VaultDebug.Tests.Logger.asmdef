@@ -1,6 +1,6 @@
 {
-    "name": "VaultDebug.Tests.Logger",
-    "rootNamespace": "VaultDebug.Tests.Logger",
+    "name": "VaultDebug.Tests.Editor.Logger",
+    "rootNamespace": "VaultDebug.Tests.Editor.Logger",
     "references": [
         "GUID:8ce0b3fa5ccca5d40993303ffa8faaec"
     ],

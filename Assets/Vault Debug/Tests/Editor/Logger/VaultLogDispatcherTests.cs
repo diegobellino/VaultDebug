@@ -2,9 +2,9 @@
 using Moq;
 using NUnit.Framework;
 using VaultDebug.Runtime.Logger;
-using VaultDebug.Tests.Logger.Customizations;
+using VaultDebug.Tests.Editor.Logger.Customizations;
 
-namespace VaultDebug.Tests.Logger
+namespace VaultDebug.Tests.Editor.Logger
 {
     [TestFixture]
     public class VaultLogDispatcherTests

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using VaultDebug.Runtime.Logger;
 
-namespace VaultDebug.Tests.Logger
+namespace VaultDebug.Tests.Editor.Logger
 {
 
     [TestFixture]

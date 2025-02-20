@@ -2,9 +2,9 @@ using AutoFixture;
 using NUnit.Framework;
 using VaultDebug.Editor.Console;
 using VaultDebug.Runtime.Logger;
-using VaultDebug.Tests.Logger.Customizations;
+using VaultDebug.Tests.Editor.Logger.Customizations;
 
-namespace VaultDebug.Tests.Console
+namespace VaultDebug.Tests.Editor.Console
 {
     [TestFixture]
     public class VaultConsoleLogHandlerTests

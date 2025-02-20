@@ -1,6 +1,6 @@
 {
-    "name": "VaultDebug.Tests.Console",
-    "rootNamespace": "VaultDebug.Tests.Console",
+    "name": "VaultDebug.Tests.Editor.Console",
+    "rootNamespace": "VaultDebug.Tests.Editor.Console",
     "references": [
         "GUID:3dfa076e1ef153045939ed6bbb185070",
         "GUID:8ce0b3fa5ccca5d40993303ffa8faaec",
