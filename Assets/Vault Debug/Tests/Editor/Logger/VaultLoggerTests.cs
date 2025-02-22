@@ -12,18 +12,14 @@ namespace VaultDebug.Tests.Editor.Logger
         private IFixture _fixture;
         private VaultLogger _logger;
         private Mock<IVaultLogHandler> _mockHandler;
-        private Mock<IVaultLogPool> _logPoolMock;
 
         [SetUp]
         public void Setup()
         {
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _logPoolMock = _fixture.Freeze<Mock<IVaultLogPool>>();
-            _logPoolMock.Setup(x => x.GetLog(It.IsAny<LogLevel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((LogLevel level, string context, string message, string stackTrace) => new VaultLog(level, context, message, stackTrace));
-            _logger = new VaultLogger("TestContext", _logPoolMock.Object);
+            _logger = new VaultLogger("TestContext");
             _mockHandler = _fixture.Freeze<Mock<IVaultLogHandler>>(); // AutoMoq creates a mock
-            VaultLogDispatcher.RegisterHandler(_mockHandler.Object);
+            DIBootstrapper.Container.Resolve<IVaultLogDispatcher>().RegisterHandler(_mockHandler.Object);
         }
 
         [Test]

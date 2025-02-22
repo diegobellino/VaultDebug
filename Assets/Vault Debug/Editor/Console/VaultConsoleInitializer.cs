@@ -1,5 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using VaultDebug.Editor.Console.Samples;
+using VaultDebug.Runtime.Logger;
 
 namespace VaultDebug.Editor.Console
 {

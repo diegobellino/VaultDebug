@@ -2,6 +2,6 @@
 {
     public interface ILoggerProvider
     {
-        VaultLogger GetLogger(string context, IVaultLogPool logPool);
+        VaultLogger GetLogger(string context);
     }
 }

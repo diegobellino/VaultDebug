@@ -11,13 +11,15 @@ namespace VaultDebug.Tests.Editor.Logger
     {
         private IFixture _fixture;
         private Mock<IVaultLogHandler> _mockHandler;
+        private VaultLogDispatcher _vaultLogDispatcher;
 
         [SetUp]
         public void Setup()
         {
             _fixture = new Fixture().Customize(new VaultLogCustomization(LogLevel.Info));
             _mockHandler = _fixture.Freeze<Mock<IVaultLogHandler>>();
-            VaultLogDispatcher.RegisterHandler(_mockHandler.Object);
+            _vaultLogDispatcher = new VaultLogDispatcher();
+            _vaultLogDispatcher.RegisterHandler(_mockHandler.Object);
         }
 
         [Test]
@@ -25,7 +27,7 @@ namespace VaultDebug.Tests.Editor.Logger
         {
             var log = _fixture.Create<VaultLog>();
 
-            VaultLogDispatcher.DispatchLog(log);
+            _vaultLogDispatcher.DispatchLog(log);
 
             _mockHandler.Verify(handler => handler.HandleLog(It.Is<VaultLog>(l => l.Message == log.Message)), Times.Once);
         }

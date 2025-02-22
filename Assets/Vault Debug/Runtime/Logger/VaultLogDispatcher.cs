@@ -3,21 +3,11 @@ using System.Linq;
 
 namespace VaultDebug.Runtime.Logger
 {
-    public static class VaultLogDispatcher
+    public class VaultLogDispatcher: IVaultLogDispatcher
     {
+        Dictionary<IVaultLogHandler, string[]> _handlers = new();
 
-        #region VARIABLES
-
-        static Dictionary<IVaultLogHandler, string[]> _handlers = new();
-
-        #endregion
-
-        static VaultLogDispatcher()
-        {
-
-        }
-
-        public static void RegisterHandler(IVaultLogHandler handler, string[] listeningContexts = null)
+        public void RegisterHandler(IVaultLogHandler handler, string[] listeningContexts = null)
         {
             if (!_handlers.ContainsKey(handler))
             {
@@ -25,7 +15,7 @@ namespace VaultDebug.Runtime.Logger
             }
         }
 
-        public static void UnregisterHandler(IVaultLogHandler handler)
+        public void UnregisterHandler(IVaultLogHandler handler)
         {
             if (_handlers.ContainsKey(handler))
             {
@@ -33,7 +23,7 @@ namespace VaultDebug.Runtime.Logger
             }
         }
 
-        public static void DispatchLog(IVaultLog log)
+        public void DispatchLog(IVaultLog log)
         {
             foreach(var handlerKeyValue in _handlers)
             {

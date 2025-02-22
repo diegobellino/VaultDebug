@@ -19,6 +19,7 @@ namespace VaultDebug.Tests.Editor.Console
             _fixture = new Fixture().Customize(new VaultLogCustomization(LogLevel.Info));
             _fixture.Customizations.Add(new TypeRelay(typeof(ILogStorageService), typeof(EditorFileLogStorageService)));
             _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogPool), typeof(VaultLogPool)));
+            _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogDispatcher), typeof(VaultLogDispatcher)));
             _logHandler = _fixture.Create<VaultEditorLogHandler>();
             _logHandler.Init();
         }

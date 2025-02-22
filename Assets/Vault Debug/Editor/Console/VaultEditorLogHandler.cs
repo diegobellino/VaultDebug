@@ -17,6 +17,7 @@ namespace VaultDebug.Editor.Console
 
         ILogStorageService _logStorageService;
         IVaultLogPool _logPool;
+        IVaultLogDispatcher _logDispatcher;
 
         public Action OnLogsChanged;
 
@@ -34,16 +35,17 @@ namespace VaultDebug.Editor.Console
 
         int _logCount;
 
-        public VaultEditorLogHandler(IVaultLogPool logPool, ILogStorageService logStorageService)
+        public VaultEditorLogHandler(IVaultLogPool logPool, ILogStorageService logStorageService, IVaultLogDispatcher vaultLogDispatcher)
         {
             Application.logMessageReceivedThreaded += HandleUnityLog;
             AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
             CompilationPipeline.assemblyCompilationFinished += HandleCompilationLogs;
 
-            VaultLogDispatcher.RegisterHandler(this);
-
+            _logDispatcher = vaultLogDispatcher;
             _logPool = logPool;
             _logStorageService = logStorageService;
+
+            _logDispatcher.RegisterHandler(this);
         }
 
         ~VaultEditorLogHandler()
@@ -322,8 +324,8 @@ namespace VaultDebug.Editor.Console
                 var allLogs = GetLogsFiltered(string.Empty);
                 _logStorageService.SaveLogsAsync(allLogs);
                 WritePreferences();
-    
-                VaultLogDispatcher.UnregisterHandler(this);
+
+                _logDispatcher.UnregisterHandler(this);
 
                 _logsByLevel.Clear();
                 _logsByContext.Clear();

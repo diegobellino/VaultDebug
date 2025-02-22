@@ -12,26 +12,23 @@ namespace VaultDebug.Editor.Console
 {
     public class VaultConsoleEditor : EditorWindow, IVaultLogListener
     {
-        #region VARIABLES
-
         const string STACKTRACE_PATTERN = @"(.*)(?:\s\(at\s)(.*):(\d*)";
+
+        IVaultLogPool _logPool;
+        IVaultLogDispatcher _logDispatcher;
+        ILogStorageService _logStorageService;
+        VaultEditorLogHandler _logHandler;
 
         Dictionary<LogLevel, Button> _filterButtons = new();
         TemplateContainer _visualTree;
         VisualElement _mainView;
         VisualElement _detailsView;
-
-        VaultEditorLogHandler _logHandler;
-        EditorFileLogStorageService _editorFileLogStorageService;
-
         VisualElement _focusedLogElement;
         ScrollView _logView;
 
         long _selectedLogId = -1;
 
         string _textFilter;
-
-        #endregion
 
         [MenuItem("Vault Debug/Console/Open Window")]
         public static void CreateWindow()
@@ -41,14 +38,21 @@ namespace VaultDebug.Editor.Console
             window.titleContent = new GUIContent("Vault Console");
         }
 
-        void CreateGUI()
+        void Initialize()
         {
-            _editorFileLogStorageService = new EditorFileLogStorageService();
-            var logPool = new VaultLogPool();
-            _logHandler = new VaultEditorLogHandler(logPool, _editorFileLogStorageService);
+            _logPool = DIBootstrapper.Container.Resolve<IVaultLogPool>();
+            _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
+            _logStorageService = new EditorFileLogStorageService();
+
+            _logHandler = new VaultEditorLogHandler(_logPool, _logStorageService, _logDispatcher);
             _logHandler.Init();
             _logHandler.RegisterLogListener(this);
-            
+        }
+
+        void CreateGUI()
+        {
+            Initialize();
+
             var root = rootVisualElement;
             var asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.MAIN_VIEW_PATH);
 
@@ -146,7 +150,7 @@ namespace VaultDebug.Editor.Console
             exportButton.clicked += () =>
             {
                 var allLogs = _logHandler.GetLogsFiltered(string.Empty);
-                _ = _editorFileLogStorageService.ExportLogsAsync(allLogs, EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH));
+                _ = _logStorageService.ExportLogsAsync(allLogs, EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH));
             };
             toolbar.Add(exportButton);
 

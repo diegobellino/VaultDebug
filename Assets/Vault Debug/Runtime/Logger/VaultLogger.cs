@@ -4,12 +4,15 @@ namespace VaultDebug.Runtime.Logger
     {
         readonly string _context;
         readonly IVaultLogPool _logPool;
+        readonly IVaultLogDispatcher _logDispatcher;
 
 
-        public VaultLogger(string context, IVaultLogPool logPool)
+        public VaultLogger(string context)
         {
             _context = context;
-            _logPool = logPool;
+
+            _logPool = DIBootstrapper.Container.Resolve<IVaultLogPool>();
+            _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
         }
 
         public void Info(string message)
@@ -37,7 +40,7 @@ namespace VaultDebug.Runtime.Logger
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
             var log = _logPool.GetLog(level, _context, message, stackTrace);
 
-            VaultLogDispatcher.DispatchLog(log);
+            _logDispatcher.DispatchLog(log);
 
             _logPool.ReleaseLog(log);
         }
