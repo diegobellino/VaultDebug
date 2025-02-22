@@ -2,16 +2,14 @@ namespace VaultDebug.Runtime.Logger
 {
     public sealed class VaultLogger
     {
-
-        #region VARIABLES
-
         readonly string _context;
+        readonly IVaultLogPool _logPool;
 
-        #endregion
 
-        public VaultLogger(string context)
+        public VaultLogger(string context, IVaultLogPool logPool)
         {
             _context = context;
+            _logPool = logPool;
         }
 
         public void Info(string message)
@@ -37,9 +35,11 @@ namespace VaultDebug.Runtime.Logger
         void Log(LogLevel level, string message)
         {
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            var log = VaultLogPool.GetLog(level, _context, message, stackTrace);
+            var log = _logPool.GetLog(level, _context, message, stackTrace);
 
             VaultLogDispatcher.DispatchLog(log);
+
+            _logPool.ReleaseLog(log);
         }
     }
 }

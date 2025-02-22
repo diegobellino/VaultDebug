@@ -1,24 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 
 namespace VaultDebug.Runtime.Logger
 {
-    public static class VaultLogPool
+    public class VaultLogPool: IVaultLogPool
     {
-        private static readonly Queue<VaultLog> _pool = new();
+        private readonly ConcurrentQueue<IVaultLog> _pool = new();
 
-        public static VaultLog GetLog(LogLevel level, string context, string message, string stackTrace)
+        public IVaultLog GetLog(LogLevel level, string context, string message, string stackTrace)
         {
             if (_pool.Count > 0)
             {
-                var log = _pool.Dequeue();
-                log.Init(level, context, message, stackTrace);
-                return log;
+                if (_pool.TryDequeue(out var log))
+                {
+                    log.Init(level, context, message, stackTrace);
+                    return log;
+                }
             }
 
             return new VaultLog(level, context, message, stackTrace); ;
         }
 
-        public static void ReleaseLog(VaultLog log)
+        public void ReleaseLog(IVaultLog log)
         {
             _pool.Enqueue(log);
         }

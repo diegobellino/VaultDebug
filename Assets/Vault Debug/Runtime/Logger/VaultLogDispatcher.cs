@@ -33,7 +33,7 @@ namespace VaultDebug.Runtime.Logger
             }
         }
 
-        public static void DispatchLog(VaultLog log)
+        public static void DispatchLog(IVaultLog log)
         {
             foreach(var handlerKeyValue in _handlers)
             {

@@ -44,7 +44,8 @@ namespace VaultDebug.Editor.Console
         void CreateGUI()
         {
             _editorFileLogStorageService = new EditorFileLogStorageService();
-            _logHandler = new VaultEditorLogHandler(_editorFileLogStorageService);
+            var logPool = new VaultLogPool();
+            _logHandler = new VaultEditorLogHandler(logPool, _editorFileLogStorageService);
             _logHandler.Init();
             _logHandler.RegisterLogListener(this);
             
@@ -286,7 +287,7 @@ namespace VaultDebug.Editor.Console
             return urlElement;
         }
 
-        VisualElement CreateLogVisualElement(VaultLog log, long id, bool isEven)
+        VisualElement CreateLogVisualElement(IVaultLog log, long id, bool isEven)
         {
             var logElement = new VisualElement();
 
@@ -354,7 +355,7 @@ namespace VaultDebug.Editor.Console
             return logElement;
         }
 
-        void OnLogSelected(VaultLog log)
+        void OnLogSelected(IVaultLog log)
         {
             var stackTrace = log.Stacktrace;
 

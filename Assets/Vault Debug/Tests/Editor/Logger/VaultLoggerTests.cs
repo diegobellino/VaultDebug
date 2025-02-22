@@ -12,12 +12,16 @@ namespace VaultDebug.Tests.Editor.Logger
         private IFixture _fixture;
         private VaultLogger _logger;
         private Mock<IVaultLogHandler> _mockHandler;
+        private Mock<IVaultLogPool> _logPoolMock;
 
         [SetUp]
         public void Setup()
         {
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _logger = new VaultLogger("TestContext");
+            _logPoolMock = _fixture.Freeze<Mock<IVaultLogPool>>();
+            _logPoolMock.Setup(x => x.GetLog(It.IsAny<LogLevel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((LogLevel level, string context, string message, string stackTrace) => new VaultLog(level, context, message, stackTrace));
+            _logger = new VaultLogger("TestContext", _logPoolMock.Object);
             _mockHandler = _fixture.Freeze<Mock<IVaultLogHandler>>(); // AutoMoq creates a mock
             VaultLogDispatcher.RegisterHandler(_mockHandler.Object);
         }
@@ -29,7 +33,7 @@ namespace VaultDebug.Tests.Editor.Logger
 
             _logger.Info(testMessage);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<VaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
         }
 
         [Test]
@@ -39,7 +43,7 @@ namespace VaultDebug.Tests.Editor.Logger
 
             _logger.Debug(testMessage);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<VaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
         }
 
         [Test]
@@ -49,7 +53,7 @@ namespace VaultDebug.Tests.Editor.Logger
 
             _logger.Warn(testMessage);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<VaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
         }
 
         [Test]
@@ -59,7 +63,7 @@ namespace VaultDebug.Tests.Editor.Logger
 
             _logger.Error(testMessage);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<VaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
         }
 
         [Test]

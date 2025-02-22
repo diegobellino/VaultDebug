@@ -7,6 +7,6 @@ namespace VaultDebug.Runtime.Logger
         void RegisterLogListener(IVaultLogListener listener);
         void UnregisterLogListener(IVaultLogListener listener);
 
-        void HandleLog(VaultLog log);
+        void HandleLog(IVaultLog log);
     }
 }

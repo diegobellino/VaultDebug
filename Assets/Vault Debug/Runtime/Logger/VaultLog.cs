@@ -2,7 +2,7 @@
 
 namespace VaultDebug.Runtime.Logger
 {
-    public class VaultLog: IComparable<VaultLog>
+    public class VaultLog: IVaultLog
     {
         private static int _nextLogId = 0;
 
@@ -44,7 +44,7 @@ namespace VaultDebug.Runtime.Logger
             return System.Threading.Interlocked.Increment(ref _nextLogId);
         }
 
-        public int CompareTo(VaultLog other)
+        public int CompareTo(IVaultLog other)
         {
             return Id.CompareTo(other.Id);
         }

@@ -5,8 +5,6 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 using VaultDebug.Runtime.Logger;
-using Newtonsoft.Json;
-using System.IO;
 
 namespace VaultDebug.Editor.Console
 {
@@ -14,28 +12,29 @@ namespace VaultDebug.Editor.Console
     {
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
         const string CONTEXT_FILTER_PATTERN = @"@context:\s*""(.*?)""|@context:\s*(\S+)";
-
+        
         public int MaxLogCached { get; set; } = 1000;
 
         ILogStorageService _logStorageService;
+        IVaultLogPool _logPool;
 
         public Action OnLogsChanged;
 
         LogLevel _activeFilters = LogLevel.Debug & LogLevel.Error & LogLevel.Info & LogLevel.Warn;
-        Dictionary<LogLevel, List<VaultLog>> _logsByLevel = new()
+        Dictionary<LogLevel, List<IVaultLog>> _logsByLevel = new()
         {
-            { LogLevel.Info, new List<VaultLog>() },
-            { LogLevel.Debug, new List<VaultLog>() },
-            { LogLevel.Warn, new List<VaultLog>() },
-            { LogLevel.Error, new List<VaultLog>() },
-            { LogLevel.Exception, new List<VaultLog>() }
+            { LogLevel.Info, new List<IVaultLog>() },
+            { LogLevel.Debug, new List<IVaultLog>() },
+            { LogLevel.Warn, new List<IVaultLog>() },
+            { LogLevel.Error, new List<IVaultLog>() },
+            { LogLevel.Exception, new List<IVaultLog>() }
         };
-        Dictionary<string, List<VaultLog>> _logsByContext = new();
+        Dictionary<string, List<IVaultLog>> _logsByContext = new();
         List<IVaultLogListener> _listeners = new();
 
         int _logCount;
 
-        public VaultEditorLogHandler(ILogStorageService logStorageService)
+        public VaultEditorLogHandler(IVaultLogPool logPool, ILogStorageService logStorageService)
         {
             Application.logMessageReceivedThreaded += HandleUnityLog;
             AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
@@ -43,6 +42,7 @@ namespace VaultDebug.Editor.Console
 
             VaultLogDispatcher.RegisterHandler(this);
 
+            _logPool = logPool;
             _logStorageService = logStorageService;
         }
 
@@ -75,7 +75,7 @@ namespace VaultDebug.Editor.Console
 
         #region LOGGING
 
-        public void HandleLog(VaultLog log)
+        public void HandleLog(IVaultLog log)
         {
             if (!Enum.IsDefined(typeof(LogLevel), log.Level))
             {
@@ -101,7 +101,7 @@ namespace VaultDebug.Editor.Console
             // Store in context-based dictionary for faster filtering
             if (!_logsByContext.ContainsKey(log.Context))
             {
-                _logsByContext[log.Context] = new List<VaultLog>();
+                _logsByContext[log.Context] = new List<IVaultLog>();
             }
             _logsByContext[log.Context].Add(log);
 
@@ -149,7 +149,7 @@ namespace VaultDebug.Editor.Console
             }
 
 
-            var log = VaultLogPool.GetLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
+            var log = _logPool.GetLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
             _logsByLevel[log.Level].Add(log);
             _logCount++;
 
@@ -183,9 +183,9 @@ namespace VaultDebug.Editor.Console
             RefreshListeners();
         }
 
-        public List<VaultLog> GetLogsFiltered(string textFilter)
+        public List<IVaultLog> GetLogsFiltered(string textFilter)
         {
-            var filteredLogs = new List<VaultLog>();
+            var filteredLogs = new List<IVaultLog>();
 
             // Extract @context filters from search query
             var contextFilters = new List<string>();
@@ -225,7 +225,7 @@ namespace VaultDebug.Editor.Console
             return filteredLogs;
         }
 
-        public VaultLog GetLogWithId(long id)
+        public IVaultLog GetLogWithId(long id)
         {
             foreach (var logsInLevel in _logsByLevel.Values)
             {

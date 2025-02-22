@@ -14,13 +14,13 @@ namespace VaultDebug.Editor.Console
         const string LOG_FILE_NAME = "vault_logs.json";
         string FullLogPath => Path.Combine(Application.persistentDataPath, LOG_FILE_NAME);
 
-        public async Task SaveLogsAsync(IEnumerable<VaultLog> logs)
+        public async Task SaveLogsAsync(IEnumerable<IVaultLog> logs)
         {
             var json = JsonConvert.SerializeObject(logs, Formatting.Indented);
             await File.WriteAllTextAsync(FullLogPath, json);
         }
 
-        public async Task<IEnumerable<VaultLog>> LoadLogsAsync()
+        public async Task<IEnumerable<IVaultLog>> LoadLogsAsync()
         {
             if (!File.Exists(FullLogPath))
                 return new List<VaultLog>();
@@ -30,7 +30,7 @@ namespace VaultDebug.Editor.Console
             return logs ?? new List<VaultLog>();
         }
 
-        public async Task ExportLogsAsync(IEnumerable<VaultLog> logs, string exportPath)
+        public async Task ExportLogsAsync(IEnumerable<IVaultLog> logs, string exportPath)
         {
             var orderedLogs = logs.OrderBy(x => x.Id);
             var logStrings = new List<string>();

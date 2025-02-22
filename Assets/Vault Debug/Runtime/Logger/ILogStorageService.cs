@@ -5,8 +5,8 @@ namespace VaultDebug.Runtime.Logger
 {
     public interface ILogStorageService
     {
-        Task SaveLogsAsync(IEnumerable<VaultLog> logs);
-        Task<IEnumerable<VaultLog>> LoadLogsAsync();
-        Task ExportLogsAsync(IEnumerable<VaultLog> logs, string exportPath);
+        Task SaveLogsAsync(IEnumerable<IVaultLog> logs);
+        Task<IEnumerable<IVaultLog>> LoadLogsAsync();
+        Task ExportLogsAsync(IEnumerable<IVaultLog> logs, string exportPath);
     }
 }
