@@ -9,7 +9,7 @@ using VaultDebug.Runtime.Logger;
 
 namespace VaultDebug.Editor.Console
 {
-    class EditorFileLogStorageService : ILogStorageService
+    public class EditorFileLogStorageService : ILogStorageService
     {
         const string LOG_FILE_NAME = "vault_logs.json";
         string FullLogPath => Path.Combine(Application.persistentDataPath, LOG_FILE_NAME);

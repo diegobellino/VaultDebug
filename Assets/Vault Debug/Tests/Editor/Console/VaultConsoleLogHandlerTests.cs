@@ -1,4 +1,5 @@
 using AutoFixture;
+using AutoFixture.Kernel;
 using NUnit.Framework;
 using VaultDebug.Editor.Console;
 using VaultDebug.Runtime.Logger;
@@ -16,6 +17,7 @@ namespace VaultDebug.Tests.Editor.Console
         public void Setup()
         {
             _fixture = new Fixture().Customize(new VaultLogCustomization(LogLevel.Info));
+            _fixture.Customizations.Add(new TypeRelay(typeof(ILogStorageService), typeof(EditorFileLogStorageService)));
             _logHandler = _fixture.Create<VaultEditorLogHandler>();
             _logHandler.Init();
         }
