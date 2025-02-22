@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,14 +32,14 @@ namespace VaultDebug.Editor.Console
 
         public async Task ExportLogsAsync(IEnumerable<VaultLog> logs, string exportPath)
         {
-            logs.OrderBy(x => x.TimeStamp);
+            var orderedLogs = logs.OrderBy(x => x.Id);
             var logStrings = new List<string>();
-            foreach (var log in logs)
+            foreach (var log in orderedLogs)
             {
-                logStrings.Add($"[{log.TimeStamp}] {log.Context}: {log.Message}");
+                logStrings.Add($"[{new DateTime(log.TimeStampTicks).ToString("HH:mm:ss.ffff")}] {log.Context}: {log.Message}");
             }
 
-            string exportFile = Path.Combine(exportPath, "vault_logs.txt");
+            string exportFile = Path.Combine(exportPath, "vault_logs_export.txt");
             await File.WriteAllLinesAsync(exportFile, logStrings);
             Debug.Log($"Logs exported to: {exportFile}");
         }

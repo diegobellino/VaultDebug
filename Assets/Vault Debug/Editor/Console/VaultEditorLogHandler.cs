@@ -225,7 +225,7 @@ namespace VaultDebug.Editor.Console
             return filteredLogs;
         }
 
-        public VaultLog GetLogWithId(int id)
+        public VaultLog GetLogWithId(long id)
         {
             foreach (var logsInLevel in _logsByLevel.Values)
             {

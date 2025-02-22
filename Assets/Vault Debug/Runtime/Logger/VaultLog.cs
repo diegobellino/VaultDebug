@@ -6,7 +6,7 @@ namespace VaultDebug.Runtime.Logger
     {
         private static int _nextLogId = 0;
 
-        public int Id { get; private set; }
+        public long Id { get; private set; }
 
         public LogLevel Level { get; private set; }
 
@@ -14,7 +14,7 @@ namespace VaultDebug.Runtime.Logger
 
         public string Message { get; private set; }
 
-        public string TimeStamp { get; private set; }
+        public long TimeStampTicks { get; private set; }
 
         public string Stacktrace { get; private set; }
 
@@ -26,7 +26,7 @@ namespace VaultDebug.Runtime.Logger
             Stacktrace = stackTrace;
             Id = GetNextId();
 
-            TimeStamp = DateTime.Now.ToLongTimeString();
+            TimeStampTicks = DateTime.Now.Ticks;
         }
 
         public void Init(LogLevel level, string context, string message, string stackTrace)
@@ -36,10 +36,10 @@ namespace VaultDebug.Runtime.Logger
             Message = message;
             Stacktrace = stackTrace;
             Id = GetNextId();
-            TimeStamp = DateTime.Now.ToLongTimeString();
+            TimeStampTicks = DateTime.Now.Ticks;
         }
 
-        private static int GetNextId()
+        private static long GetNextId()
         {
             return System.Threading.Interlocked.Increment(ref _nextLogId);
         }

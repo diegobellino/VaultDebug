@@ -27,7 +27,7 @@ namespace VaultDebug.Editor.Console
         VisualElement _focusedLogElement;
         ScrollView _logView;
 
-        int _selectedLogId = -1;
+        long _selectedLogId = -1;
 
         string _textFilter;
 
@@ -155,7 +155,6 @@ namespace VaultDebug.Editor.Console
             {
                 var allLogs = _logHandler.GetLogsFiltered(string.Empty);
                 _ = _editorFileLogStorageService.ExportLogsAsync(allLogs, EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH));
-                Debug.Log("Export clicked!");
             };
             toolbar.Add(exportButton);
 
@@ -188,7 +187,7 @@ namespace VaultDebug.Editor.Console
 
             var log = _logHandler.GetLogWithId(_selectedLogId);
             var timestampTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_TIMESTAMP_TAG_NAME);
-            timestampTag.text = log.TimeStamp;
+            timestampTag.text = new DateTime(log.TimeStampTicks).ToString("HH:mm:ss.ffff");
 
             var contextTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_CONTEXT_TAG_NAME);
             contextTag.text = log.Context;
@@ -296,7 +295,7 @@ namespace VaultDebug.Editor.Console
             return urlElement;
         }
 
-        VisualElement CreateLogVisualElement(VaultLog log, int id, bool isEven)
+        VisualElement CreateLogVisualElement(VaultLog log, long id, bool isEven)
         {
             var logElement = new VisualElement();
 
