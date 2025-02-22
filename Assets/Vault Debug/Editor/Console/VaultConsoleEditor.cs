@@ -21,7 +21,8 @@ namespace VaultDebug.Editor.Console
         VisualElement _mainView;
         VisualElement _detailsView;
 
-        readonly VaultConsoleLogHandler _logHandler = new();
+        VaultEditorLogHandler _logHandler;
+        EditorFileLogStorageService _editorFileLogStorageService;
 
         VisualElement _focusedLogElement;
         ScrollView _logView;
@@ -35,7 +36,6 @@ namespace VaultDebug.Editor.Console
         [MenuItem("Vault Debug/Console/Open Window")]
         public static void CreateWindow()
         {
-
             var window = GetWindow(typeof(VaultConsoleEditor));
             window.minSize = new Vector2(700f, 110f);
             window.titleContent = new GUIContent("Vault Console");
@@ -52,6 +52,8 @@ namespace VaultDebug.Editor.Console
 
         void CreateGUI()
         {
+            _editorFileLogStorageService = new EditorFileLogStorageService();
+            _logHandler = new VaultEditorLogHandler(_editorFileLogStorageService);
             _logHandler.Init();
             _logHandler.RegisterLogListener(this);
             
@@ -149,7 +151,12 @@ namespace VaultDebug.Editor.Console
             exportButton.text = "Export";
             exportButton.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
             exportButton.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_CLASS_NAME);
-            exportButton.clicked += _logHandler.ExportLogs;
+            exportButton.clicked += () =>
+            {
+                var allLogs = _logHandler.GetLogsFiltered(string.Empty);
+                _ = _editorFileLogStorageService.ExportLogsAsync(allLogs, EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH));
+                Debug.Log("Export clicked!");
+            };
             toolbar.Add(exportButton);
 
             var clearButton = new Button();

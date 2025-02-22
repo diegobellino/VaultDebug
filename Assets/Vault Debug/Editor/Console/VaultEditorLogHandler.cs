@@ -10,19 +10,14 @@ using System.IO;
 
 namespace VaultDebug.Editor.Console
 {
-    public class VaultConsoleLogHandler : IDisposable, IVaultLogHandler
+    public class VaultEditorLogHandler : IDisposable, IVaultLogHandler
     {
-
-        #region VARIABLES
-
-
         const string COMPILER_MESSAGE_PATTERN = @"^(.*)\((\d{2}),\d{2}\):\s(.*)";
         const string CONTEXT_FILTER_PATTERN = @"@context:\s*""(.*?)""|@context:\s*(\S+)";
 
-        const int MAX_LOGS = 1000;
+        public int MaxLogCached { get; set; } = 1000;
 
-        const string LOG_FILE_PATH = "vault_logs.json";
-        string FullLogPath => Path.Combine(Application.persistentDataPath, LOG_FILE_PATH);
+        ILogStorageService _logStorageService;
 
         public Action OnLogsChanged;
 
@@ -40,23 +35,26 @@ namespace VaultDebug.Editor.Console
 
         int _logCount;
 
-        #endregion
+        public VaultEditorLogHandler(ILogStorageService logStorageService)
+        {
+            Application.logMessageReceivedThreaded += HandleUnityLog;
+            AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
+            CompilationPipeline.assemblyCompilationFinished += HandleCompilationLogs;
 
-        ~VaultConsoleLogHandler()
+            VaultLogDispatcher.RegisterHandler(this);
+
+            _logStorageService = logStorageService;
+        }
+
+        ~VaultEditorLogHandler()
         {
             Dispose(false);
         }
 
         public void Init()
         {
-            Application.logMessageReceivedThreaded += HandleUnityLog;
-            AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
-            CompilationPipeline.assemblyCompilationFinished += HandleCompilationLogs;
-            VaultLogDispatcher.RegisterHandler(this);
-
             ReadPreferences();
-
-            LoadLogs();
+            _logStorageService.LoadLogsAsync();
         }
 
         public void RegisterLogListener(IVaultLogListener listener)
@@ -74,60 +72,6 @@ namespace VaultDebug.Editor.Console
                 _listeners.Remove(listener);
             }
         }
-
-        #region LOAD/SAVE/EXPORT
-
-        void SaveLogs()
-        {
-            var logs = new List<VaultLog>();
-
-            foreach (var logList in _logsByLevel.Values)
-            {
-                logs.AddRange(logList);
-            }
-
-            logs.Sort();
-
-            string json = JsonConvert.SerializeObject(logs, Formatting.Indented);
-            File.WriteAllText(FullLogPath, json);
-        }
-
-        void LoadLogs()
-        {
-            if (!File.Exists(FullLogPath)) return;
-
-            string json = File.ReadAllText(FullLogPath);
-            var logs = JsonConvert.DeserializeObject<List<VaultLog>>(json);
-
-            if (logs != null)
-            {
-                foreach (var log in logs)
-                {
-                    _logsByLevel[log.Level].Add(log);
-                }
-            }
-
-            RefreshListeners();
-        }
-
-        public void ExportLogs()
-        {
-            var logFilePath = Path.Combine(EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH), "vault_logs.txt");
-
-            var logStrings = new List<string>();
-            foreach (var logs in _logsByLevel.Values)
-            {
-                foreach (var log in logs)
-                {
-                    logStrings.Add($"[{log.TimeStamp}] {log.Context}: {log.Message}");
-                }
-            }
-
-            File.WriteAllLines(logFilePath, logStrings);
-            VaultDebugLoggerInternal.Logger.Info($"Logs exported to: {logFilePath}");
-        }
-
-        #endregion
 
         #region LOGGING
 
@@ -164,7 +108,7 @@ namespace VaultDebug.Editor.Console
             _logCount++;
 
             // Apply fixed-size buffer
-            if (_logCount > MAX_LOGS)
+            if (_logCount > MaxLogCached)
             {
                 _logsByLevel[log.Level].RemoveAt(0);
             }
@@ -299,13 +243,17 @@ namespace VaultDebug.Editor.Console
 
         public void ClearLogs()
         {
+            var allLogs = GetLogsFiltered(string.Empty);
+            _logStorageService.SaveLogsAsync(allLogs);
+
             foreach (var level in _logsByLevel.Keys)
             {
                 _logsByLevel[level].Clear();
             }
 
+            _logsByContext.Clear();
+
             _logCount = 0;
-            SaveLogs();
             RefreshListeners();
         }
 
@@ -371,12 +319,14 @@ namespace VaultDebug.Editor.Console
 
             if (disposeManagedResources)
             {
-                SaveLogs();
+                var allLogs = GetLogsFiltered(string.Empty);
+                _logStorageService.SaveLogsAsync(allLogs);
                 WritePreferences();
     
                 VaultLogDispatcher.UnregisterHandler(this);
 
                 _logsByLevel.Clear();
+                _logsByContext.Clear();
             }
         }
 

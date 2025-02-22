@@ -10,13 +10,13 @@ namespace VaultDebug.Tests.Editor.Console
     public class VaultConsoleLogHandlerTests
     {
         private IFixture _fixture;
-        private VaultConsoleLogHandler _logHandler;
+        private VaultEditorLogHandler _logHandler;
 
         [SetUp]
         public void Setup()
         {
             _fixture = new Fixture().Customize(new VaultLogCustomization(LogLevel.Info));
-            _logHandler = _fixture.Create<VaultConsoleLogHandler>();
+            _logHandler = _fixture.Create<VaultEditorLogHandler>();
             _logHandler.Init();
         }
 
