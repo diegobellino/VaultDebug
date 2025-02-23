@@ -73,6 +73,7 @@ namespace VaultDebug.Editor.Console
         public const string DETAILS_RAW_STACKTRACE_NAME = "raw-content";
 
         public const string DETAILS_FULL_LOG_CLASS_NAME = "full-log";
+        public const string DETAILS_PROPERTIES_CLASS_NAME = "property-list";
 
         #endregion
 

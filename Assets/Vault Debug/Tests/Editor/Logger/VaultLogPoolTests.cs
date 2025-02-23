@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using NUnit.Framework;
+using System.Collections.Generic;
 using VaultDebug.Runtime.Logger;
 using VaultDebug.Tests.Editor.Logger.Customizations;
 
@@ -21,9 +22,9 @@ namespace VaultDebug.Tests.Editor.Logger
         [Test]
         public void GetLog_ShouldReuseInstances()
         {
-            var log1 = _vaultLogPool.GetLog(_fixture.Create<LogLevel>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<string>());
+            var log1 = _vaultLogPool.GetLog(_fixture.Create<LogLevel>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<Dictionary<string, object>>());
             _vaultLogPool.ReleaseLog(log1);
-            var log2 = _vaultLogPool.GetLog(_fixture.Create<LogLevel>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<string>());
+            var log2 = _vaultLogPool.GetLog(_fixture.Create<LogLevel>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<Dictionary<string, object>>());
 
             Assert.AreEqual(log1, log2);
         }

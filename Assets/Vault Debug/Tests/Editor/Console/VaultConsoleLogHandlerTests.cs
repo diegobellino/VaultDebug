@@ -21,7 +21,7 @@ namespace VaultDebug.Tests.Editor.Console
             _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogPool), typeof(VaultLogPool)));
             _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogDispatcher), typeof(VaultLogDispatcher)));
             _logHandler = _fixture.Create<VaultEditorLogHandler>();
-            _logHandler.Init();
+            _logHandler.InitializeAsync();
         }
 
         [Test]

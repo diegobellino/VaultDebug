@@ -2,6 +2,8 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using Moq;
 using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 using VaultDebug.Runtime.Logger;
 
 namespace VaultDebug.Tests.Editor.Logger
@@ -26,40 +28,44 @@ namespace VaultDebug.Tests.Editor.Logger
         public void InfoLog_ShouldDispatchLog()
         {
             string testMessage = _fixture.Create<string>();
+            var testProperties = _fixture.Create<Dictionary<string, object>>();
 
-            _logger.Info(testMessage);
+            _logger.Info(testMessage, testProperties);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage && log.Properties.SequenceEqual(testProperties))), Times.Once);
         }
 
         [Test]
         public void DebugLog_ShouldDispatchLog()
         {
             string testMessage = _fixture.Create<string>();
+            var testProperties = _fixture.Create<Dictionary<string, object>>();
 
-            _logger.Debug(testMessage);
+            _logger.Debug(testMessage, testProperties);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage && log.Properties.SequenceEqual(testProperties))), Times.Once);
         }
 
         [Test]
         public void WarnLog_ShouldDispatchLog()
         {
             string testMessage = _fixture.Create<string>();
+            var testProperties = _fixture.Create<Dictionary<string, object>>();
 
-            _logger.Warn(testMessage);
+            _logger.Warn(testMessage, testProperties);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage && log.Properties.SequenceEqual(testProperties))), Times.Once);
         }
 
         [Test]
         public void ErrorLog_ShouldDispatchLog()
         {
             string testMessage = _fixture.Create<string>();
+            var testProperties = _fixture.Create<Dictionary<string, object>>();
 
-            _logger.Error(testMessage);
+            _logger.Error(testMessage, testProperties);
 
-            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage)), Times.Once);
+            _mockHandler.Verify(h => h.HandleLog(It.Is<IVaultLog>(log => log.Message == testMessage && log.Properties.SequenceEqual(testProperties))), Times.Once);
         }
 
         [Test]

@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 namespace VaultDebug.Runtime.Logger
@@ -25,6 +26,11 @@ namespace VaultDebug.Runtime.Logger
         {
             var matchCollection = Regex.Matches(str, pattern);
             return matchCollection;
+        }
+
+        public static string GetJsonString(this object o)
+        {
+            return JsonConvert.SerializeObject(o, Formatting.None);
         }
     }
 }

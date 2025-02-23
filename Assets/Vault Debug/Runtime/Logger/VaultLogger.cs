@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace VaultDebug.Runtime.Logger
 {
     public sealed class VaultLogger
@@ -15,34 +17,34 @@ namespace VaultDebug.Runtime.Logger
             _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
         }
 
-        public void Info(string message)
+        public void Info(string message, IDictionary<string, object> properties = null)
         {
-            Log(LogLevel.Info, message);
+            Log(LogLevel.Info, message, properties);
         }
 
-        public void Debug(string message)
+        public void Debug(string message, IDictionary<string, object> properties = null)
         {
-            Log(LogLevel.Debug, message);
+            Log(LogLevel.Debug, message, properties);
         }
 
-        public void Warn(string message)
+        public void Warn(string message, IDictionary<string, object> properties = null)
         {
-            Log(LogLevel.Warn, message);
+            Log(LogLevel.Warn, message, properties);
         }
 
-        public void Error(string message)
+        public void Error(string message, IDictionary<string, object> properties = null)
         {
-            Log(LogLevel.Error, message);
+            Log(LogLevel.Error, message, properties);
         }
 
-        void Log(LogLevel level, string message)
+        void Log(LogLevel level, string message, IDictionary<string, object> properties = null)
         {
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            var log = _logPool.GetLog(level, _context, message, stackTrace);
+            properties ??= new Dictionary<string, object>();
+
+            var log = _logPool.GetLog(level, _context, message, stackTrace, properties);
 
             _logDispatcher.DispatchLog(log);
-
-            _logPool.ReleaseLog(log);
         }
     }
 }

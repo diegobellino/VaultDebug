@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -16,6 +17,8 @@ namespace VaultDebug.Runtime.Logger
 
         public string Stacktrace { get; }
 
-        void Init(LogLevel level, string context, string message, string stackTrace);
+        public IDictionary<string, object> Properties { get; }
+
+        void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null);
     }
 }

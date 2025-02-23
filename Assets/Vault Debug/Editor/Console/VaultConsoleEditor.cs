@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using VaultDebug.Runtime.Logger;
 using System.Text.RegularExpressions;
 using UnityEditorInternal;
+using System.Threading.Tasks;
 
 namespace VaultDebug.Editor.Console
 {
     public class VaultConsoleEditor : EditorWindow, IVaultLogListener
     {
         const string STACKTRACE_PATTERN = @"(.*)(?:\s\(at\s)(.*):(\d*)";
-
-        IVaultLogPool _logPool;
-        IVaultLogDispatcher _logDispatcher;
+        
         ILogStorageService _logStorageService;
         VaultEditorLogHandler _logHandler;
 
@@ -38,20 +37,20 @@ namespace VaultDebug.Editor.Console
             window.titleContent = new GUIContent("Vault Console");
         }
 
-        void Initialize()
+        async Task InitializeAsync()
         {
-            _logPool = DIBootstrapper.Container.Resolve<IVaultLogPool>();
-            _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
-            _logStorageService = new EditorFileLogStorageService();
+            DIBootstrapper.Container.Register<ILogStorageService, EditorFileLogStorageService>(Lifetime.Singleton);
+            _logStorageService = DIBootstrapper.Container.Resolve<ILogStorageService>();
 
-            _logHandler = new VaultEditorLogHandler(_logPool, _logStorageService, _logDispatcher);
-            _logHandler.Init();
+            _logHandler = new VaultEditorLogHandler();
+
+            await _logHandler.InitializeAsync();
             _logHandler.RegisterLogListener(this);
         }
 
-        void CreateGUI()
+        async void CreateGUI()
         {
-            Initialize();
+            await InitializeAsync();
 
             var root = rootVisualElement;
             var asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.MAIN_VIEW_PATH);
@@ -71,6 +70,7 @@ namespace VaultDebug.Editor.Console
             AddDetailsViewToTree();
 
             RefreshFilters();
+            RefreshLogs();
 
             root.Add(_visualTree);
         }
@@ -216,6 +216,9 @@ namespace VaultDebug.Editor.Console
             var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
             fullLog.text = log.Message;
             fullLog.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+
+            var properties = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_PROPERTIES_CLASS_NAME);
+            properties.text = log.Properties.GetJsonString();
 
             var smartTab = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_SMART_TAB_NAME);
             var smartContent = _detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);

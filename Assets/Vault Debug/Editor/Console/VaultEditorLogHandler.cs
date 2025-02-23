@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace VaultDebug.Editor.Console
         ILogStorageService _logStorageService;
         IVaultLogPool _logPool;
         IVaultLogDispatcher _logDispatcher;
+        ILogIdProvider _logIdProvider;
 
         public Action OnLogsChanged;
 
@@ -33,17 +35,19 @@ namespace VaultDebug.Editor.Console
         Dictionary<string, List<IVaultLog>> _logsByContext = new();
         List<IVaultLogListener> _listeners = new();
 
+
         int _logCount;
 
-        public VaultEditorLogHandler(IVaultLogPool logPool, ILogStorageService logStorageService, IVaultLogDispatcher vaultLogDispatcher)
+        public VaultEditorLogHandler()
         {
             Application.logMessageReceivedThreaded += HandleUnityLog;
             AssemblyReloadEvents.beforeAssemblyReload += ClearLogs;
             CompilationPipeline.assemblyCompilationFinished += HandleCompilationLogs;
 
-            _logDispatcher = vaultLogDispatcher;
-            _logPool = logPool;
-            _logStorageService = logStorageService;
+            _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
+            _logPool = DIBootstrapper.Container.Resolve<IVaultLogPool>();
+            _logStorageService = DIBootstrapper.Container.Resolve<ILogStorageService>();
+            _logIdProvider = DIBootstrapper.Container.Resolve<ILogIdProvider>();
 
             _logDispatcher.RegisterHandler(this);
         }
@@ -53,10 +57,21 @@ namespace VaultDebug.Editor.Console
             Dispose(false);
         }
 
-        public void Init()
+        public async Task InitializeAsync()
         {
             ReadPreferences();
-            _logStorageService.LoadLogsAsync();
+            var logs = await _logStorageService.LoadLogsAsync();
+
+            foreach (var log in logs)
+            {
+                _logsByLevel[log.Level].Add(log);
+
+                if (!_logsByContext.ContainsKey(log.Context))
+                {
+                    _logsByContext[log.Context] = new List<IVaultLog>();
+                }
+                _logsByContext[log.Context].Add(log);
+            }
         }
 
         public void RegisterLogListener(IVaultLogListener listener)
@@ -79,6 +94,9 @@ namespace VaultDebug.Editor.Console
 
         public void HandleLog(IVaultLog log)
         {
+            // Logs are reused and transformed by the pool, clone them before cacheing to avoid misconstructions
+            var clonedLog = CloneLog(log);
+
             if (!Enum.IsDefined(typeof(LogLevel), log.Level))
             {
                 Debug.LogWarning($"VaultConsoleLogHandler received an invalid LogLevel: {log.Level}");
@@ -98,22 +116,18 @@ namespace VaultDebug.Editor.Console
             }
 
             // Store in level-based dictionary (unchanged)
-            _logsByLevel[log.Level].Add(log);
+            _logsByLevel[log.Level].Add(clonedLog);
 
             // Store in context-based dictionary for faster filtering
             if (!_logsByContext.ContainsKey(log.Context))
             {
                 _logsByContext[log.Context] = new List<IVaultLog>();
             }
-            _logsByContext[log.Context].Add(log);
+            _logsByContext[log.Context].Add(clonedLog);
 
             _logCount++;
 
-            // Apply fixed-size buffer
-            if (_logCount > MaxLogCached)
-            {
-                _logsByLevel[log.Level].RemoveAt(0);
-            }
+            // TODO Apply fixed-size buffer
 
             RefreshListeners();
         }
@@ -224,6 +238,8 @@ namespace VaultDebug.Editor.Console
                 }
             }
 
+            filteredLogs.Sort();
+
             return filteredLogs;
         }
 
@@ -245,6 +261,8 @@ namespace VaultDebug.Editor.Console
 
         public void ClearLogs()
         {
+            _logIdProvider.Reset();
+
             var allLogs = GetLogsFiltered(string.Empty);
             _logStorageService.SaveLogsAsync(allLogs);
 
@@ -257,6 +275,7 @@ namespace VaultDebug.Editor.Console
 
             _logCount = 0;
             RefreshListeners();
+
         }
 
         void RefreshListeners()
@@ -265,6 +284,12 @@ namespace VaultDebug.Editor.Console
             {
                 listener.RefreshLogs();
             }
+        }
+
+        private IVaultLog CloneLog(IVaultLog log)
+        {
+            // We create a new VaultLog instance with the same properties.
+            return new VaultLog(log.Level, log.Context, log.Message, log.Stacktrace, log.Properties, log.Id);
         }
 
         #endregion
@@ -321,6 +346,8 @@ namespace VaultDebug.Editor.Console
 
             if (disposeManagedResources)
             {
+                _logIdProvider.Reset();
+
                 var allLogs = GetLogsFiltered(string.Empty);
                 _logStorageService.SaveLogsAsync(allLogs);
                 WritePreferences();
