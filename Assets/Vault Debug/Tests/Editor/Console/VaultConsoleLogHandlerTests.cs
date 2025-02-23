@@ -20,6 +20,8 @@ namespace VaultDebug.Tests.Editor.Console
             _fixture.Customizations.Add(new TypeRelay(typeof(ILogStorageService), typeof(EditorFileLogStorageService)));
             _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogPool), typeof(VaultLogPool)));
             _fixture.Customizations.Add(new TypeRelay(typeof(IVaultLogDispatcher), typeof(VaultLogDispatcher)));
+
+            DIBootstrapper.Container.Register<ILogStorageService, EditorFileLogStorageService>(Lifetime.Transient);
             _logHandler = _fixture.Create<VaultEditorLogHandler>();
             _logHandler.InitializeAsync();
         }
