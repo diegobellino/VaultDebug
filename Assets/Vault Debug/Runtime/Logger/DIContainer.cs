@@ -4,21 +4,49 @@ using System.Linq;
 
 namespace VaultDebug.Runtime.Logger
 {
+    /// <summary>
+    /// Specifies the lifetime of a dependency.
+    /// </summary>
     public enum Lifetime
     {
+        /// <summary>
+        /// A new instance is created every time it is requested.
+        /// </summary>
         Transient,
+        /// <summary>
+        /// A single instance is shared.
+        /// </summary>
         Singleton
     }
 
+    /// <summary>
+    /// A simple dependency injection container for resolving and registering dependencies.
+    /// </summary>
     public class DIContainer
     {
-        // Internal registration record
+        // Internal registration record.
         private class Registration
         {
+            /// <summary>
+            /// Gets the implementation type for the registration.
+            /// </summary>
             public Type ImplementationType { get; }
+
+            /// <summary>
+            /// Gets the lifetime of the registration.
+            /// </summary>
             public Lifetime Lifetime { get; }
+
+            /// <summary>
+            /// Gets or sets the cached instance for singleton registrations.
+            /// </summary>
             public object Instance { get; set; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Registration"/> class.
+            /// </summary>
+            /// <param name="implementationType">The concrete implementation type.</param>
+            /// <param name="lifetime">The lifetime of the registration.</param>
             public Registration(Type implementationType, Lifetime lifetime)
             {
                 ImplementationType = implementationType;
@@ -26,7 +54,7 @@ namespace VaultDebug.Runtime.Logger
             }
         }
 
-        // Mapping from abstraction to its registration details
+        // Mapping from abstraction to its registration details.
         private readonly Dictionary<Type, Registration> _registrations = new();
 
         /// <summary>
@@ -34,7 +62,7 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <typeparam name="TInterface">The abstraction.</typeparam>
         /// <typeparam name="TImplementation">The concrete implementation.</typeparam>
-        /// <param name="lifetime">Lifetime of the instance.</param>
+        /// <param name="lifetime">The lifetime of the instance.</param>
         public void Register<TInterface, TImplementation>(Lifetime lifetime = Lifetime.Transient)
             where TImplementation : TInterface
         {

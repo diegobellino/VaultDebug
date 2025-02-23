@@ -6,8 +6,9 @@ using UnityEngine;
 namespace VaultDebug.Runtime.Logger
 {
     /// <summary>
-    /// Lightweight DI Bootstrapper to help resolve dependencies using a basic DIContainer. It's meant to be accessible from both editor scripts and runtime.
-    /// TODO: Substitute for something more extensible in the future, like UnityContainer
+    /// A lightweight DI Bootstrapper that initializes a basic DIContainer for dependency resolution.
+    /// Accessible from both editor scripts and runtime.
+    /// TODO: Replace with a more extensible container (e.g., UnityContainer) in the future.
     /// </summary>
 #if UNITY_EDITOR
     [InitializeOnLoad]
@@ -15,6 +16,10 @@ namespace VaultDebug.Runtime.Logger
     public static class DIBootstrapper
     {
         private static DIContainer _container;
+
+        /// <summary>
+        /// Gets the dependency injection container.
+        /// </summary>
         public static DIContainer Container => _container;
 
         static DIBootstrapper()
@@ -22,6 +27,9 @@ namespace VaultDebug.Runtime.Logger
             Initialize();
         }
 
+        /// <summary>
+        /// Initializes the DI container and registers common dependencies.
+        /// </summary>
         public static void Initialize()
         {
             if (_container != null)
