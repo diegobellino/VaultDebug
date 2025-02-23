@@ -75,7 +75,6 @@ namespace VaultDebug.Editor.Console
             root.Add(_visualTree);
         }
 
-
         void OnDestroy()
         {
             _logHandler.UnregisterLogListener(this);

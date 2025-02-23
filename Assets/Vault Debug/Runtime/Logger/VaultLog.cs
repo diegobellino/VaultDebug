@@ -72,5 +72,10 @@ namespace VaultDebug.Runtime.Logger
         {
             return Id.CompareTo(other.Id);
         }
+
+        public IVaultLog Clone()
+        {
+            return new VaultLog(Level, Context, Message, Stacktrace, Properties, Id);
+        }
     }
 }

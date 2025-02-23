@@ -95,7 +95,7 @@ namespace VaultDebug.Editor.Console
         public void HandleLog(IVaultLog log)
         {
             // Logs are reused and transformed by the pool, clone them before cacheing to avoid misconstructions
-            var clonedLog = CloneLog(log);
+            var clonedLog = log.Clone();
 
             if (!Enum.IsDefined(typeof(LogLevel), log.Level))
             {
@@ -112,22 +112,12 @@ namespace VaultDebug.Editor.Console
             // Ensure context is initialized
             if (string.IsNullOrEmpty(log.Context))
             {
-                log = new VaultLog(log.Level, "UnknownContext", log.Message, log.Stacktrace);
+                log = _logPool.GetLog(log.Level, "UnknownContext", log.Message, log.Stacktrace);
+                clonedLog = log.Clone();
+                _logPool.ReleaseLog(log);
             }
 
-            // Store in level-based dictionary (unchanged)
-            _logsByLevel[log.Level].Add(clonedLog);
-
-            // Store in context-based dictionary for faster filtering
-            if (!_logsByContext.ContainsKey(log.Context))
-            {
-                _logsByContext[log.Context] = new List<IVaultLog>();
-            }
-            _logsByContext[log.Context].Add(clonedLog);
-
-            _logCount++;
-
-            // TODO Apply fixed-size buffer
+            CacheLog(clonedLog);
 
             RefreshListeners();
         }
@@ -154,20 +144,22 @@ namespace VaultDebug.Editor.Console
                 LogType.Error => LogLevel.Error,
                 LogType.Warning => LogLevel.Warn,
                 LogType.Log => LogLevel.Info,
-                LogType.Exception or LogType.Assert => LogLevel.Exception,
+                LogType.Exception => LogLevel.Exception,
+                LogType.Assert => LogLevel.Exception,
                 _ => LogLevel.Info
             };
 
-            // Filtrar errores de compilación para evitar duplicados
+            // Filter compilation errors to avoid duplications
             if (logMessage.IsMatch(COMPILER_MESSAGE_PATTERN))
             {
                 return;
             }
 
-
             var log = _logPool.GetLog(assignedLevel, "UNITY LOG", logMessage, stackTrace);
-            _logsByLevel[log.Level].Add(log);
-            _logCount++;
+            var clonedLog = log.Clone();
+            _logPool.ReleaseLog(log);
+
+            CacheLog(clonedLog);
 
             RefreshListeners();
         }
@@ -189,11 +181,11 @@ namespace VaultDebug.Editor.Console
                 var line = matchedGroups[2].ToString();
                 var message = matchedGroups[3].ToString();
 
+                var log = _logPool.GetLog(LogLevel.Exception, "COMPILATION", message, $"{path}:{line}");
+                var clonedLog = log.Clone();
+                _logPool.ReleaseLog(log);
 
-                _logCount++;
-
-                var log = new VaultLog(LogLevel.Exception, "COMPILATION", message, $"{path}:{line}");
-                _logsByLevel[log.Level].Add(log);
+                CacheLog(clonedLog);
             }
 
             RefreshListeners();
@@ -286,10 +278,64 @@ namespace VaultDebug.Editor.Console
             }
         }
 
-        private IVaultLog CloneLog(IVaultLog log)
+        void CacheLog(IVaultLog log)
         {
-            // We create a new VaultLog instance with the same properties.
-            return new VaultLog(log.Level, log.Context, log.Message, log.Stacktrace, log.Properties, log.Id);
+            // Store in level-based dictionary (unchanged)
+            _logsByLevel[log.Level].Add(log);
+
+            // Store in context-based dictionary for faster filtering
+            if (!_logsByContext.ContainsKey(log.Context))
+            {
+                _logsByContext[log.Context] = new List<IVaultLog>();
+            }
+            _logsByContext[log.Context].Add(log);
+
+            _logCount++;
+
+            EnforceMaxLogCount();
+        }
+
+        void EnforceMaxLogCount()
+        {
+            while (_logCount > MaxLogCached)
+            {
+                IVaultLog oldestLog = null;
+                // Since _logsByLevel only has a few fixed keys (e.g., Info, Debug, Warn, Error, Exception),
+                // we can iterate over each level’s list (which is ordered by insertion) and consider its first element.
+                foreach (var logList in _logsByLevel.Values)
+                {
+                    if (logList.Count > 0)
+                    {
+                        var candidate = logList[0];
+                        if (oldestLog == null || candidate.Id < oldestLog.Id)
+                        {
+                            oldestLog = candidate;
+                        }
+                    }
+                }
+
+                if (oldestLog != null)
+                {
+                    // Remove from the level-based dictionary
+                    _logsByLevel[oldestLog.Level].Remove(oldestLog);
+
+                    // Remove from the context-based dictionary
+                    if (_logsByContext.TryGetValue(oldestLog.Context, out var contextLogs))
+                    {
+                        contextLogs.Remove(oldestLog);
+                        if (contextLogs.Count == 0)
+                        {
+                            _logsByContext.Remove(oldestLog.Context);
+                        }
+                    }
+
+                    _logCount--;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         #endregion

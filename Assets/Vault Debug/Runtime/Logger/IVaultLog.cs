@@ -52,5 +52,11 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="stackTrace">The stack trace for the log.</param>
         /// <param name="properties">Optional additional properties.</param>
         void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null);
+
+        /// <summary>
+        /// Return a clone of this log. Use this from the log handlers if you must cache an immutable copy of the log, as logs may be reused by the pooling system.
+        /// </summary>
+        /// <returns>A copy of this log that's safe to store</returns>
+        IVaultLog Clone();
     }
 }

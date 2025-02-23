@@ -75,6 +75,7 @@ namespace VaultDebug.Runtime.Logger
 
             var log = _logPool.GetLog(level, _context, message, stackTrace, properties);
             _logDispatcher.DispatchLog(log);
+            _logPool.ReleaseLog(log);
         }
     }
 }
