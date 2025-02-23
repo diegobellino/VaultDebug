@@ -121,28 +121,50 @@ namespace VaultDebug.Editor.Console
 
         void AddToolbarToTree()
         {
-            _filterButtons.Clear();
-            // Get parent element
+            var toolbar = CreateToolbar();
+            _visualTree.Add(toolbar);
+        }
+
+        VisualElement CreateToolbar()
+        {
             var toolbar = new VisualElement();
             toolbar.AddToClassList(VaultConsoleElements.TOOLBAR_CLASS_NAME);
 
+            AddFilterButtons(toolbar);
+            AddSearchbar(toolbar);
+            AddExportButton(toolbar);
+            AddClearButton(toolbar);
+
+            return toolbar;
+        }
+
+        void AddFilterButtons(VisualElement parent)
+        {
+            _filterButtons.Clear();
+
             _filterButtons[LogLevel.Error] = CreateFilterButton(VaultConsoleElements.ERROR_BUTTON_CLASS_NAME, "E", () => { FilterLogLevel(LogLevel.Error); });
             _filterButtons[LogLevel.Warn] = CreateFilterButton(VaultConsoleElements.WARNING_BUTTON_CLASS_NAME, "W", () => { FilterLogLevel(LogLevel.Warn); });
-            _filterButtons[LogLevel.Info] = CreateFilterButton(VaultConsoleElements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); } );
+            _filterButtons[LogLevel.Info] = CreateFilterButton(VaultConsoleElements.INFO_BUTTON_CLASS_NAME, "I", () => { FilterLogLevel(LogLevel.Info); });
             _filterButtons[LogLevel.Debug] = CreateFilterButton(VaultConsoleElements.DEBUG_BUTTON_CLASS_NAME, "D", () => { FilterLogLevel(LogLevel.Debug); });
 
+            foreach (var button in _filterButtons.Values)
+            {
+                parent.Add(button);
+            }
+        }
+
+        void AddSearchbar(VisualElement parent)
+        {
             var searchbar = new ToolbarSearchField();
             searchbar.AddToClassList(VaultConsoleElements.SEARCHBAR_CLASS_NAME);
             searchbar.name = "searchbar";
             searchbar.RegisterValueChangedCallback(OnFilterChanged);
 
-            foreach(var button in _filterButtons.Values)
-            {
-                toolbar.Add(button);            
-            }
-            
-            toolbar.Add(searchbar);
+            parent.Add(searchbar);
+        }
 
+        void AddExportButton(VisualElement parent)
+        {
             var exportButton = new Button();
             exportButton.text = "Export";
             exportButton.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
@@ -152,16 +174,19 @@ namespace VaultDebug.Editor.Console
                 var allLogs = _logHandler.GetLogsFiltered(string.Empty);
                 _ = _logStorageService.ExportLogsAsync(allLogs, EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH));
             };
-            toolbar.Add(exportButton);
 
+            parent.Add(exportButton);
+        }
+
+        void AddClearButton(VisualElement parent)
+        {
             var clearButton = new Button();
             clearButton.text = "Clear";
             clearButton.RemoveFromClassList(VaultConsoleElements.UNITY_BUTTON_CLASS_NAME);
             clearButton.AddToClassList(VaultConsoleElements.TOOLBAR_BUTTON_CLASS_NAME);
             clearButton.clicked += ClearLogs;
-            toolbar.Add(clearButton);
 
-            _visualTree.Add(toolbar);
+            parent.Add(clearButton);
         }
 
         Button CreateFilterButton(string name, string label, Action onClick)
