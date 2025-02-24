@@ -121,6 +121,9 @@ Register additional dependencies or replace existing ones using the built-in DI 
 - **Customize the Editor Console:**
 Modify the UI and behavior of the Vault Console Editor to suit your project's needs.
 
+## Known  Issues
+- `Assertion failed` generates aVisual issues in the Vault Console when displaying logs while UIToolkit windows are open
+
 ## Dependencies
 - **Newtonsoft.Json:**
 For JSON serialization and deserialization of log data.
