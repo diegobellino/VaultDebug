@@ -77,15 +77,15 @@ namespace VaultDebug.Editor.Console
 
         void OnDestroy()
         {
-            _logHandler.UnregisterLogListener(this);
-            _logHandler.Dispose();
+            _logHandler?.UnregisterLogListener(this);
+            _logHandler?.Dispose();
         }
 
         // Executes 10 times per second
         void OnInspectorUpdate()
         {
             // If window is unfocused, auto scroll to bottom and disable detail view
-            if (focusedWindow != this)
+            if (focusedWindow != this && _logView != null)
             {
                 _logView.scrollOffset = Vector2.up * float.MaxValue;
             }
