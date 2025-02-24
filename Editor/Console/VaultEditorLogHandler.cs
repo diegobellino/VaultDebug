@@ -21,7 +21,7 @@ namespace VaultDebug.Editor.Console
         IVaultLogDispatcher _logDispatcher;
         ILogIdProvider _logIdProvider;
 
-        public Action OnLogsChanged;
+        public Action<long> OnLogExpired;
 
         LogLevel _activeFilters = LogLevel.Debug & LogLevel.Error & LogLevel.Info & LogLevel.Warn;
         Dictionary<LogLevel, List<IVaultLog>> _logsByLevel = new()
@@ -330,6 +330,7 @@ namespace VaultDebug.Editor.Console
                     }
 
                     _logCount--;
+                    OnLogExpired?.Invoke(oldestLog.Id);
                 }
                 else
                 {

@@ -28,6 +28,7 @@ namespace VaultDebug.Editor.Console
         long _selectedLogId = -1;
 
         string _textFilter;
+        Dictionary<long, VisualElement> _logElementsById = new();
 
         [MenuItem("Vault Debug/Console/Open Window")]
         public static void CreateWindow()
@@ -43,6 +44,7 @@ namespace VaultDebug.Editor.Console
             _logStorageService = DIBootstrapper.Container.Resolve<ILogStorageService>();
 
             _logHandler = new VaultEditorLogHandler();
+            _logHandler.OnLogExpired += RemoveLogVisualElement;
 
             await _logHandler.InitializeAsync();
             _logHandler.RegisterLogListener(this);
@@ -385,7 +387,20 @@ namespace VaultDebug.Editor.Console
                     OnLogSelected(log);
                 }));
 
+            _logElementsById.TryAdd(log.Id, logElement);
+
             return logElement;
+        }
+
+        void RemoveLogVisualElement(long id)
+        {
+            if (_logElementsById.TryGetValue(id, out var logElement))
+            {
+                var logContainer = _mainView.Q(classes: VaultConsoleElements.LOG_VIEW_CLASS_NAME);
+                logContainer.Remove(logElement);
+                _logElementsById.Remove(id);
+            }
+
         }
 
         void OnLogSelected(IVaultLog log)
@@ -447,6 +462,7 @@ namespace VaultDebug.Editor.Console
         public void ClearLogs()
         {
             _logHandler.ClearLogs();
+            HideDetailsView();
             RefreshLogs();
         }
 
@@ -465,6 +481,7 @@ namespace VaultDebug.Editor.Console
             if (filteredLogs.Count <= 0)
             {
                 logContainer.Clear();
+                _logElementsById.Clear();
                 return;
             }
 
