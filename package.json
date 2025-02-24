@@ -1,6 +1,6 @@
 {
   "name": "com.diegobellino.vaultdebug",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "displayName": "VaultDebug",
   "description": "A high-performance logging system for Unity with structured logs, UI console, and filtering.",
   "unity": "2022.3",

@@ -1,6 +1,6 @@
 # Vault Debug
 
-Vault Debug is a comprehensive logging solution for Unity projects. It provides a robust runtime logging system with a lightweight dependency injection container, efficient log pooling, and an interactive Unity Editor Console for real-time log management.
+Vault Debug is a comprehensive logging solution for Unity projects. It provides a robust runtime structured logging system with a lightweight dependency injection container, efficient log pooling, and an interactive Unity Editor Console for real-time log management.
 
 ---
 
@@ -8,12 +8,15 @@ Vault Debug is a comprehensive logging solution for Unity projects. It provides 
 
 - **Robust Logging System:**  
   Log messages at various levels (Info, Debug, Warn, Error, Exception) to help you monitor and debug your application.
+
+- **Structured logging:**  
+  Vault Debug includes structured logs by default. Simply add properties in a `IDictionary<string,object>` to your logs. They will automatically show in the Vault Console and be ready to implement any logic over them on your log handler implementations.
   
 - **Lightweight Dependency Injection:**  
   Uses a simple DI container (via the `DIBootstrapper`) to register and resolve core components, making it easy to extend or replace dependencies.
   
 - **Efficient Log Pooling:**  
-  Recycles log objects using a log pool to reduce garbage collection overhead and improve performance.
+  Recycles log objects using a log pool to reduce garbage collection overhead and improve performance. By default, it stores the last 1000 logs
   
 - **Editor Console Integration:**  
   Includes a custom Unity Editor window that displays logs, supports filtering by log level, provides search capabilities, and allows log exporting.
@@ -60,6 +63,34 @@ public class ExampleUsage : MonoBehaviour
     }
 }
 ```
+
+### Exploring functionality
+
+#### Benchmarking
+You can run a benchmark to compare performance against Unity's logging system by navigating to Vault Debug > Console > Benchmark Logs
+
+> [!TIP]
+> Open the Vault Debug console first, otherwise you will not be able to see the Vault Logs, just the end result
+
+Below is a table showcasing comparing the time it takes to log a specific amount of logs to Vault Debug and Unity Logs. Each value in the table is an average of 3 runs.
+
+System info:
+- 32 GB RAM
+- Windows 11
+- AMD Ryzen 9
+
+| Log Count | Vault Debug | Unity Log |
+|-----------|-------------|-----------|
+| 10        | 1 ms        | 2 ms      |
+| 100       | 20 ms       | 24 ms     |
+| 1000      | 550 ms      | 436 ms    |
+| 10000     | 5920 ms     | 6232 ms   | 
+
+Vault Debug performs better than Unity Logs in almost all scenarios. Unity Logs are better performing when the Vault Debug Pool fills, as shown in the test generating 1000 logs, but the log pooling system makes Vault Debug more performant when generating bigger amounts of logs too
+
+#### Log Types
+Instead of creating your own logger, it's easier to use the Vault Debug > Console > Generate test logs option in order to create some sample logs
+
 ## Using the Editor Console
 Vault Debug includes an interactive console for viewing and managing logs within the Unity Editor:
 
@@ -70,6 +101,12 @@ Navigate to Vault Debug > Console > Open Window in the Unity Editor menu.
 Use the filter buttons to display logs by level (Info, Debug, Warn, Error). The search field supports text filtering and context-specific searches.
    - **Currently supported filters**
       - `@context:` followed by a string, will show only logs pertaining to a specific context. Example:  `@context:"TestContext"`
+
+- **Log details:**
+Click on any log in the Vault Console to see all its information, including:
+   - Full log
+   - Stacktrace (smart or raw)
+   - Properties (for structured logs)
 
 - **Exporting Logs:**
 Click the Export button to save the current logs to a text file.
@@ -92,7 +129,10 @@ Initializes the dependency injection container and registers core dependencies (
 The primary class used for logging messages. Offers methods like Info(), Debug(), Warn(), and Error().
 
 - **VaultLogPool:**
-Manages a pool of reusable log objects to optimize memory usage.
+Manages a pool of reusable log objects to optimize memory usage. By default the log pool will allow 1000 elements. 
+
+> [!NOTE]
+> The Vault Console will remove logs automatically when the limit is exceeded by the pool
 
 - **VaultLogDispatcher:**
 Dispatches log messages to registered handlers, ensuring that logs are processed by all interested components.
