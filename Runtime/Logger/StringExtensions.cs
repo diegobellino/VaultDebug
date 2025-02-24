@@ -1,5 +1,5 @@
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using Unity.Plastic.Newtonsoft.Json;
 
 namespace VaultDebug.Runtime.Logger
 {
