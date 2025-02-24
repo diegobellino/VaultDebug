@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Vault%20Debug/Editor/Console/UI/VaultConsoleEditor.uss?fileID=7433441132597879392&amp;guid=1f450b14f55d32848b31cf1b10590189&amp;type=3#VaultConsoleEditor" />
-    <Style src="project://database/Assets/Vault%20Debug/Editor/Console/UI/DetailsView.uss?fileID=7433441132597879392&amp;guid=8b75e1f8730cecc43932014d736adc9e&amp;type=3#DetailsView" />
-    <ui:VisualElement name="details-view" class="details-view">
+    <Style src="project://database/Packages/com.diegobellino.vaultdebug/Editor/Console/UI/VaultConsoleEditor.uss?fileID=7433441132597879392&amp;guid=1f450b14f55d32848b31cf1b10590189&amp;type=3#VaultConsoleEditor" />
+    <Style src="project://database/Packages/com.diegobellino.vaultdebug/Editor/Console/UI/DetailsView.uss?fileID=7433441132597879392&amp;guid=8b75e1f8730cecc43932014d736adc9e&amp;type=3#DetailsView" />
+    <ui:VisualElement name="details-view" class="details-view" style="flex-shrink: 0; flex-grow: 1; flex-direction: column; flex-basis: auto; height: 50%;">
         <ui:VisualElement name="toolbar-area" style="height: 50px; padding-bottom: 20px; flex-shrink: 0;">
             <ui:Button text="\u25BC" display-tooltip-when-elided="false" name="hide-button" class="hide-button" />
             <ui:Label text="13:02:06.56312" display-tooltip-when-elided="true" name="timestamp-tag" class="tag" style="position: absolute; left: 10px; top: 10px;" />

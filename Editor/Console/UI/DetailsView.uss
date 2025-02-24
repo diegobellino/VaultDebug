@@ -28,9 +28,9 @@
     border-right-color: rgb(29, 28, 28);
     border-top-color: rgb(29, 28, 28);
     border-bottom-color: rgb(29, 28, 28);
-    background-color: rgb(72, 71, 71);
     align-items: stretch;
-    min-height: 50%;
+    flex-grow: 1;
+    flex-shrink: 1;
 }
 
 .details-label {

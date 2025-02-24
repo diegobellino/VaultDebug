@@ -8,7 +8,7 @@
     align-items: center;
     min-height: 25px;
     max-height: 25px;
-    background-color: rgba(60, 60, 60, 255);
+    background-color: rgb(60, 60, 60);
 }
 
 .searchbar {
@@ -48,7 +48,7 @@
 }
 
 .toolbar-button:active {
-    background-color: rgba(118, 115, 115, 255);
+    background-color: rgb(118, 115, 115);
 }
 
 .log-view {
@@ -170,8 +170,12 @@
 .main-view {
     align-items: stretch;
     justify-content: flex-start;
-    flex-grow: 1;
-    min-height: 30%;
+    flex-grow: 0;
+    flex-shrink: 1;
+}
+
+.minimized-view {
+    height: 105px;
 }
 
 .hide-button {

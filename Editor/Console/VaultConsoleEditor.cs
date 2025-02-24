@@ -203,6 +203,7 @@ namespace VaultDebug.Editor.Console
 
         void ShowDetailsView()
         {
+            _mainView.AddToClassList(VaultConsoleElements.MINIMIZED_VIEW_CLASS_NAME);
             _detailsView.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
             var log = _logHandler.GetLogWithId(_selectedLogId);
@@ -296,6 +297,7 @@ namespace VaultDebug.Editor.Console
 
         void HideDetailsView()
         {
+            _mainView.RemoveFromClassList(VaultConsoleElements.MINIMIZED_VIEW_CLASS_NAME);
             _detailsView.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
             _focusedLogElement?.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);

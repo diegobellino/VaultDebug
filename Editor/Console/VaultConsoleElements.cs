@@ -31,6 +31,7 @@ namespace VaultDebug.Editor.Console
 
         public const string ACTIVE_ELEMENT_CLASS_NAME = "active";
         public const string HIDDEN_ELEMENT_CLASS_NAME = "hidden";
+        public const string MINIMIZED_VIEW_CLASS_NAME = "minimized-view";
 
         public const string TOOLBAR_CLASS_NAME = "toolbar";
         public const string TOOLBAR_BUTTON_CLASS_NAME = "toolbar-button";
