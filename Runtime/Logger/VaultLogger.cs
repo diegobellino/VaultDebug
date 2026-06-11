@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -10,16 +11,18 @@ namespace VaultDebug.Runtime.Logger
         readonly string _context;
         readonly IVaultLogPool _logPool;
         readonly IVaultLogDispatcher _logDispatcher;
+        readonly Color? _color;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VaultLogger"/> class for the specified context.
         /// </summary>
         /// <param name="context">The context for the logger.</param>
-        public VaultLogger(string context)
+        public VaultLogger(string context, Color? color = null)
         {
             _context = context;
             _logPool = DIBootstrapper.Container.Resolve<IVaultLogPool>();
             _logDispatcher = DIBootstrapper.Container.Resolve<IVaultLogDispatcher>();
+            _color = color;
         }
 
         /// <summary>
@@ -27,6 +30,7 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <param name="message">The informational message.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         public void Info(string message, IDictionary<string, object> properties = null)
         {
             Log(LogLevel.Info, message, properties);
@@ -37,8 +41,9 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <param name="message">The debug message.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         public void Debug(string message, IDictionary<string, object> properties = null)
-        {
+        {  
             Log(LogLevel.Debug, message, properties);
         }
 
@@ -47,6 +52,7 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <param name="message">The warning message.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         public void Warn(string message, IDictionary<string, object> properties = null)
         {
             Log(LogLevel.Warn, message, properties);
@@ -57,6 +63,7 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         public void Error(string message, IDictionary<string, object> properties = null)
         {
             Log(LogLevel.Error, message, properties);
@@ -68,12 +75,13 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="level">The log level.</param>
         /// <param name="message">The log message.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         void Log(LogLevel level, string message, IDictionary<string, object> properties = null)
         {
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
             properties ??= new Dictionary<string, object>();
 
-            var log = _logPool.GetLog(level, _context, message, stackTrace, properties);
+            var log = _logPool.GetLog(level, _context, message, stackTrace, properties, _color);
             _logDispatcher.DispatchLog(log);
             _logPool.ReleaseLog(log);
         }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -14,14 +15,14 @@ namespace VaultDebug.Runtime.Logger
         /// </summary>
         /// <param name="context">The context for which to get the logger.</param>
         /// <returns>A <see cref="VaultLogger"/> instance for the specified context.</returns>
-        public VaultLogger GetLogger(string context)
+        public VaultLogger GetLogger(string context, Color? color = null)
         {
             if (_loggers.ContainsKey(context))
             {
                 return _loggers[context];
             }
 
-            var newLogger = new VaultLogger(context);
+            var newLogger = new VaultLogger(context, color);
             _loggers.Add(context, newLogger);
             return newLogger;
         }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -18,19 +19,20 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="message">The log message.</param>
         /// <param name="stackTrace">The stack trace at the log point.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         /// <returns>An instance of <see cref="IVaultLog"/>.</returns>
-        public IVaultLog GetLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null)
+        public IVaultLog GetLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, Color? color = null)
         {
             if (_pool.Count > 0)
             {
                 if (_pool.TryDequeue(out var log))
                 {
-                    log.Init(level, context, message, stackTrace, properties);
+                    log.Init(level, context, message, stackTrace, properties, color);
                     return log;
                 }
             }
 
-            return new VaultLog(level, context, message, stackTrace, properties);
+            return new VaultLog(level, context, message, stackTrace, properties, color);
         }
 
         /// <summary>

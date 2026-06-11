@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -44,6 +45,11 @@ namespace VaultDebug.Runtime.Logger
         IDictionary<string, object> Properties { get; }
 
         /// <summary>
+        /// Gets the optional color used to render the message and context tag in the Vault Console.
+        /// </summary>
+        Color? Color { get; }
+
+        /// <summary>
         /// Initializes the log with the specified details.
         /// </summary>
         /// <param name="level">The log level.</param>
@@ -51,7 +57,8 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="message">The log message.</param>
         /// <param name="stackTrace">The stack trace for the log.</param>
         /// <param name="properties">Optional additional properties.</param>
-        void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null);
+        /// <param name="color">Optional color for message and context tag rendering.</param>
+        void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, Color? color = null);
 
         /// <summary>
         /// Return a clone of this log. Use this from the log handlers if you must cache an immutable copy of the log, as logs may be reused by the pooling system.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -29,6 +30,9 @@ namespace VaultDebug.Runtime.Logger
         /// <inheritdoc/>
         public IDictionary<string, object> Properties { get; private set; }
 
+        /// <inheritdoc/>
+        public Color? Color { get; private set; }
+
         private ILogIdProvider _logIdProvider;
 
         /// <summary>
@@ -39,8 +43,9 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="message">The log message.</param>
         /// <param name="stackTrace">The stack trace associated with the log.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         /// <param name="id">Optional log ID. If not provided, a new ID is generated.</param>
-        public VaultLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, long id = -1)
+        public VaultLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, Color? color = null, long id = -1)
         {
             _logIdProvider = DIBootstrapper.Container.Resolve<ILogIdProvider>();
 
@@ -48,6 +53,7 @@ namespace VaultDebug.Runtime.Logger
             Context = context;
             Message = message;
             Stacktrace = stackTrace;
+            Color = color;
             Id = id == -1 ? _logIdProvider.GetNextId() : id;
             Properties = properties ?? new Dictionary<string, object>();
 
@@ -55,16 +61,28 @@ namespace VaultDebug.Runtime.Logger
         }
 
         /// <inheritdoc/>
-        public void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null)
+        public void Init(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, Color? color = null)
         {
             Level = level;
             Context = context;
             Message = message;
             Stacktrace = stackTrace;
+            Color = color;
             Id = _logIdProvider.GetNextId();
             Properties = properties ?? new Dictionary<string, object>();
 
             TimeStampTicks = DateTime.Now.Ticks;
+        }
+
+        /// <summary>
+        /// Applies the default color for logs deserialized from JSON that omit the Color field.
+        /// </summary>
+        public void ApplyDeserializedColorDefault()
+        {
+            if (!Color.HasValue)
+            {
+                Color = UnityEngine.Color.white;
+            }
         }
 
         /// <inheritdoc/>
@@ -75,7 +93,7 @@ namespace VaultDebug.Runtime.Logger
 
         public IVaultLog Clone()
         {
-            return new VaultLog(Level, Context, Message, Stacktrace, Properties, Id);
+            return new VaultLog(Level, Context, Message, Stacktrace, Properties, Color, Id);
         }
     }
 }

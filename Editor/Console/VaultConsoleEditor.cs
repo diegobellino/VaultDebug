@@ -214,9 +214,11 @@ namespace VaultDebug.Editor.Console
 
             var contextTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_CONTEXT_TAG_NAME);
             contextTag.text = log.Context;
+            ApplyLogColor(contextTag, log.Color);
 
             var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
             fullLog.text = log.Message;
+            ApplyLogColor(fullLog, log.Color);
             fullLog.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
             var properties = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_PROPERTIES_CLASS_NAME);
@@ -322,6 +324,18 @@ namespace VaultDebug.Editor.Console
             return urlElement;
         }
 
+        static void ApplyLogColor(Label label, Color? color)
+        {
+            if (color.HasValue)
+            {
+                label.style.color = new StyleColor(color.Value);
+            }
+            else
+            {
+                label.style.color = StyleKeyword.Null;
+            }
+        }
+
         VisualElement CreateLogVisualElement(IVaultLog log, long id, bool isEven)
         {
             var logElement = new VisualElement();
@@ -359,9 +373,11 @@ namespace VaultDebug.Editor.Console
 
             var logMessageLabel = new Label(log.Message);
             logMessageLabel.AddToClassList(VaultConsoleElements.LOG_TEXT_CLASS_NAME);
+            ApplyLogColor(logMessageLabel, log.Color);
 
             var contextTag = new Label(log.Context);
             contextTag.AddToClassList(VaultConsoleElements.LOG_TAG_CLASS_NAME);
+            ApplyLogColor(contextTag, log.Color);
 
             if (id == _selectedLogId)
             {

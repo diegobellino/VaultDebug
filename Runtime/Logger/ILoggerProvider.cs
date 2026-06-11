@@ -1,4 +1,6 @@
-﻿namespace VaultDebug.Runtime.Logger
+﻿using UnityEngine;
+
+namespace VaultDebug.Runtime.Logger
 {
     /// <summary>
     /// Provides logger instances for specific contexts.
@@ -10,6 +12,6 @@
         /// </summary>
         /// <param name="context">The context for which to get the logger.</param>
         /// <returns>A <see cref="VaultLogger"/> instance associated with the context.</returns>
-        VaultLogger GetLogger(string context);
+        VaultLogger GetLogger(string context, Color? color = null);
     }
 }

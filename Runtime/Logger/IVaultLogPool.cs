@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace VaultDebug.Runtime.Logger
 {
@@ -15,8 +16,9 @@ namespace VaultDebug.Runtime.Logger
         /// <param name="message">The log message.</param>
         /// <param name="stackTrace">The stack trace for the log.</param>
         /// <param name="properties">Optional additional properties.</param>
+        /// <param name="color">Optional color for message and context tag rendering.</param>
         /// <returns>An instance of <see cref="IVaultLog"/>.</returns>
-        IVaultLog GetLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null);
+        IVaultLog GetLog(LogLevel level, string context, string message, string stackTrace, IDictionary<string, object> properties = null, Color? color = null);
 
         /// <summary>
         /// Releases a log instance back into the pool for reuse.

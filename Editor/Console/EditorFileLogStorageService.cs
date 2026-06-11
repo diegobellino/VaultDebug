@@ -26,8 +26,14 @@ namespace VaultDebug.Editor.Console
                 return new List<VaultLog>();
 
             string json = await File.ReadAllTextAsync(FullLogPath);
-            var logs = JsonConvert.DeserializeObject<List<VaultLog>>(json);
-            return logs ?? new List<VaultLog>();
+            var logs = JsonConvert.DeserializeObject<List<VaultLog>>(json) ?? new List<VaultLog>();
+
+            foreach (var log in logs)
+            {
+                log.ApplyDeserializedColorDefault();
+            }
+
+            return logs;
         }
 
         public async Task ExportLogsAsync(IEnumerable<IVaultLog> logs, string exportPath)
