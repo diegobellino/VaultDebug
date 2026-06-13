@@ -21,14 +21,11 @@ namespace VaultDebug.Editor.Console
         Dictionary<LogLevel, Button> _filterButtons = new();
         TemplateContainer _visualTree;
         VisualElement _mainView;
-        VisualElement _detailsView;
-        VisualElement _focusedLogElement;
         ScrollView _logView;
-
-        long _selectedLogId = -1;
 
         string _textFilter;
         Dictionary<long, VisualElement> _logElementsById = new();
+        HashSet<long> _expandedLogIds = new();
 
         [MenuItem("Vault Debug/Console/Open Window")]
         public static void CreateWindow()
@@ -69,7 +66,6 @@ namespace VaultDebug.Editor.Console
 
             AddToolbarToTree();
             AddMainViewToTree();
-            AddDetailsViewToTree();
 
             RefreshFilters();
             RefreshLogs();
@@ -86,7 +82,7 @@ namespace VaultDebug.Editor.Console
         // Executes 10 times per second
         void OnInspectorUpdate()
         {
-            // If window is unfocused, auto scroll to bottom and disable detail view
+            // If window is unfocused, auto scroll to bottom
             if (focusedWindow != this && _logView != null)
             {
                 _logView.scrollOffset = Vector2.up * float.MaxValue;
@@ -105,19 +101,6 @@ namespace VaultDebug.Editor.Console
 
             _mainView.Add(_logView);
             _visualTree.Add(_mainView);
-        }
-
-        void AddDetailsViewToTree()
-        {
-            _detailsView = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.DETAILS_VIEW_PATH).Instantiate();
-            
-            var hideButton = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_HIDE_BUTTON_CLASS_NAME);
-            hideButton.clicked += () => {
-                HideDetailsView();
-            };
-
-            HideDetailsView();
-            _visualTree.Add(_detailsView);
         }
 
         void AddToolbarToTree()
@@ -203,35 +186,31 @@ namespace VaultDebug.Editor.Console
             return button;
         }
 
-        void ShowDetailsView()
+        void PopulateDetailsView(VisualElement detailsView, IVaultLog log)
         {
-            _mainView.AddToClassList(VaultConsoleElements.MINIMIZED_VIEW_CLASS_NAME);
-            _detailsView.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
-
-            var log = _logHandler.GetLogWithId(_selectedLogId);
-            var timestampTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_TIMESTAMP_TAG_NAME);
+            var timestampTag = detailsView.Q<Label>(VaultConsoleElements.DETAILS_TIMESTAMP_TAG_NAME);
             timestampTag.text = new DateTime(log.TimeStampTicks).ToString("HH:mm:ss.ffff");
 
-            var contextTag = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_CONTEXT_TAG_NAME);
+            var contextTag = detailsView.Q<Label>(VaultConsoleElements.DETAILS_CONTEXT_TAG_NAME);
             contextTag.text = log.Context;
             ApplyLogColor(contextTag, log.Color);
 
-            var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
+            var fullLog = detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
             fullLog.text = log.Message;
             ApplyLogColor(fullLog, log.Color);
             fullLog.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
 
-            var properties = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_PROPERTIES_CLASS_NAME);
+            var properties = detailsView.Q<Label>(VaultConsoleElements.DETAILS_PROPERTIES_CLASS_NAME);
             properties.text = log.Properties.GetJsonString();
 
-            var smartTab = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_SMART_TAB_NAME);
-            var smartContent = _detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);
+            var smartTab = detailsView.Q<Button>(VaultConsoleElements.DETAILS_SMART_TAB_NAME);
+            var smartContent = detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);
 
-            var rawTab = _detailsView.Q<Button>(VaultConsoleElements.DETAILS_RAW_TAB_NAME);
-            var rawContent = _detailsView.Q(VaultConsoleElements.DETAILS_RAW_STACKTRACE_NAME);
+            var rawTab = detailsView.Q<Button>(VaultConsoleElements.DETAILS_RAW_TAB_NAME);
+            var rawContent = detailsView.Q(VaultConsoleElements.DETAILS_RAW_STACKTRACE_NAME);
 
-            smartTab.clicked += () => SelectSmartTab();
-            rawTab.clicked += () => SelectRawTab();
+            smartTab.clicked += SelectSmartTab;
+            rawTab.clicked += SelectRawTab;
 
             // Smart stacktrace is selected by default
             SelectSmartTab();
@@ -299,20 +278,35 @@ namespace VaultDebug.Editor.Console
             }
         }
 
-        void HideDetailsView()
+        VisualElement CreateInlineDetailsView(IVaultLog log, long id, VisualElement logRow)
         {
-            _mainView.RemoveFromClassList(VaultConsoleElements.MINIMIZED_VIEW_CLASS_NAME);
-            _detailsView.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+            var detailsView = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VaultConsoleElements.DETAILS_VIEW_PATH).Instantiate();
+            detailsView.style.flexGrow = 0;
+            detailsView.style.flexShrink = 0;
+            detailsView.style.height = StyleKeyword.Auto;
+            detailsView.style.maxHeight = new StyleLength(280);
 
-            _focusedLogElement?.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
-            _focusedLogElement = null;
-            _selectedLogId = -1;
+            var hideButton = detailsView.Q<Button>(VaultConsoleElements.DETAILS_HIDE_BUTTON_CLASS_NAME);
+            hideButton.text = "−";
+            hideButton.clicked += () =>
+            {
+                detailsView.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+                logRow.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                _expandedLogIds.Remove(id);
+            };
 
-            var stacktrace = _detailsView.Q(VaultConsoleElements.DETAILS_SMART_STACKTRACE_NAME);
-            stacktrace.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+            PopulateDetailsView(detailsView, log);
 
-            var fullLog = _detailsView.Q<Label>(VaultConsoleElements.DETAILS_FULL_LOG_CLASS_NAME);
-            fullLog.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+            if (_expandedLogIds.Contains(id))
+            {
+                logRow.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+            }
+            else
+            {
+                detailsView.AddToClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+            }
+
+            return detailsView;
         }
 
         VisualElement CreateURLText(string text, Action OnClick)
@@ -339,16 +333,18 @@ namespace VaultDebug.Editor.Console
         VisualElement CreateLogVisualElement(IVaultLog log, long id, bool isEven)
         {
             var logElement = new VisualElement();
+            var logRow = new VisualElement();
 
             logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_CLASS_NAME);
+            logRow.AddToClassList(VaultConsoleElements.LOG_ROW_CLASS_NAME);
 
             if (log.Level == LogLevel.Exception)
             {
-                logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_CRITICAL_CLASS_NAME);
+                logRow.AddToClassList(VaultConsoleElements.LOG_ELEMENT_CRITICAL_CLASS_NAME);
             }
             else if (isEven)
             {
-                logElement.AddToClassList(VaultConsoleElements.LOG_ELEMENT_EVEN_CLASS_NAME);
+                logRow.AddToClassList(VaultConsoleElements.LOG_ELEMENT_EVEN_CLASS_NAME);
             }
 
             var logIconClass = log.Level switch
@@ -379,29 +375,37 @@ namespace VaultDebug.Editor.Console
             contextTag.AddToClassList(VaultConsoleElements.LOG_TAG_CLASS_NAME);
             ApplyLogColor(contextTag, log.Color);
 
-            if (id == _selectedLogId)
+            if (_expandedLogIds.Contains(id))
             {
-                logElement.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
-                _focusedLogElement = logElement;
+                logRow.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
             }
 
-            logElement.Add(logIconLabel);
-            logElement.Add(logMessageLabel);
-            logElement.Add(contextTag);
-            logElement.AddManipulator(
+            logRow.Add(logIconLabel);
+            logRow.Add(logMessageLabel);
+            logRow.Add(contextTag);
+
+            var detailsView = CreateInlineDetailsView(log, id, logRow);
+
+            logRow.AddManipulator(
                 new Clickable(() =>
                 {
-                    if (_focusedLogElement != null)
+                    if (_expandedLogIds.Contains(id))
                     {
-                        _focusedLogElement.RemoveFromClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                        return;
                     }
 
-                    _selectedLogId = id;
-                    _focusedLogElement = logElement;
-                    _focusedLogElement.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
-
-                    OnLogSelected(log);
+                    _expandedLogIds.Add(id);
+                    logRow.AddToClassList(VaultConsoleElements.ACTIVE_ELEMENT_CLASS_NAME);
+                    detailsView.RemoveFromClassList(VaultConsoleElements.HIDDEN_ELEMENT_CLASS_NAME);
+                    
+                    EditorApplication.delayCall += () =>
+                    {
+                        _logView.ScrollTo(logElement);
+                    };
                 }));
+
+            logElement.Add(logRow);
+            logElement.Add(detailsView);
 
             _logElementsById.TryAdd(log.Id, logElement);
 
@@ -417,20 +421,8 @@ namespace VaultDebug.Editor.Console
                 _logElementsById.Remove(id);
             }
 
-        }
+            _expandedLogIds.Remove(id);
 
-        void OnLogSelected(IVaultLog log)
-        {
-            var stackTrace = log.Stacktrace;
-
-            ShowDetailsView();
-
-            // delayCall executes after all inspectors have been updated. Must be delayed to let detailsView accomodate to new height before scrolling
-            // to element
-            EditorApplication.delayCall += () =>
-            {
-                _logView.ScrollTo(_focusedLogElement);
-            };
         }
 
         #endregion
@@ -478,7 +470,7 @@ namespace VaultDebug.Editor.Console
         public void ClearLogs()
         {
             _logHandler.ClearLogs();
-            HideDetailsView();
+            _expandedLogIds.Clear();
             RefreshLogs();
         }
 
@@ -498,6 +490,7 @@ namespace VaultDebug.Editor.Console
             {
                 logContainer.Clear();
                 _logElementsById.Clear();
+                _expandedLogIds.Clear();
                 return;
             }
 

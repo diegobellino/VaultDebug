@@ -47,6 +47,7 @@ namespace VaultDebug.Editor.Console
 
         public const string LOG_VIEW_CLASS_NAME = "log-view";
         public const string LOG_ELEMENT_CLASS_NAME = "log-element";
+        public const string LOG_ROW_CLASS_NAME = "log-row";
         public const string LOG_ELEMENT_EVEN_CLASS_NAME = "log-element-even";
         public const string LOG_ELEMENT_CRITICAL_CLASS_NAME = "log-element-critical";
         public const string LOG_TEXT_CLASS_NAME = "log-text";

@@ -60,9 +60,14 @@
 }
 
 .log-element {
-    height: 35px;
     border-bottom-color: rgb(53, 52, 52);
     border-bottom-width: 1px;
+    width: auto;
+    flex-direction: column;
+}
+
+.log-row {
+    height: 35px;
     -unity-text-align: middle-left;
     justify-content: flex-start;
     align-items: auto;
@@ -75,22 +80,22 @@
     white-space: nowrap;
 }
 
-.log-element-even {
+.log-row.log-element-even {
     background-color: rgb(72, 71, 71);
 }
 
-.log-element-critical {
+.log-row.log-element-critical {
     background-color: rgb(183, 81, 70);
     color: rgb(29, 28, 28);
     -unity-font-style: bold;
     font-size: 12px;
 }
 
-.log-element:hover {
+.log-row:hover {
     background-color: rgb(69, 89, 103);
 }
 
-.log-element:active {
+.log-row:active {
     background-color: rgb(81, 122, 154);
 }
 
