@@ -16,7 +16,8 @@
         "AutoFixture.dll",
         "AutoFixture.AutoMoq.dll",
         "Moq.dll",
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

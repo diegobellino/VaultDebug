@@ -5,6 +5,7 @@
   "description": "A high-performance logging system for Unity with structured logs, UI console, and filtering.",
   "unity": "2022.3",
   "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
   },
   "author": {
     "name": "Diego Bellino",

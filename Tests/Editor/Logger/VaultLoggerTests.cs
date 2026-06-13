@@ -19,7 +19,7 @@ namespace VaultDebug.Tests.Editor.Logger
         public void Setup()
         {
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _logger = new VaultLogger("TestContext");
+            _logger = new VaultLogger("TestContext", UnityEngine.Color.aquamarine);
             _mockHandler = _fixture.Freeze<Mock<IVaultLogHandler>>(); // AutoMoq creates a mock
             DIBootstrapper.Container.Resolve<IVaultLogDispatcher>().RegisterHandler(_mockHandler.Object);
         }

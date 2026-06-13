@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using UnityEngine;
 using VaultDebug.Editor.Console;
@@ -39,6 +40,10 @@ namespace VaultDebug.Tests.Editor.Console
                 Assert.AreEqual(1, logs.Count);
                 Assert.AreEqual(Color.white, logs[0].Color);
             }
+            catch (Exception e)
+            {
+                Assert.True(false, e.ToString());
+            }
             finally
             {
                 if (File.Exists(tempPath))
@@ -61,7 +66,7 @@ namespace VaultDebug.Tests.Editor.Console
                 ""Properties"": {}
             }";
 
-            var log = JsonUtility.FromJson<VaultLog>(json);
+            var log = JsonConvert.DeserializeObject<VaultLog>(json);
             log.ApplyDeserializedColorDefault();
 
             Assert.AreEqual(Color.white, log.Color);
@@ -82,7 +87,7 @@ namespace VaultDebug.Tests.Editor.Console
                     return new List<VaultLog>();
 
                 string json = await File.ReadAllTextAsync(_logPath);
-                var logs = JsonUtility.FromJson<List<VaultLog>>(json) ?? new List<VaultLog>();
+                var logs = JsonConvert.DeserializeObject<List<VaultLog>>(json);
 
                 foreach (var log in logs)
                 {
