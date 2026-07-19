@@ -45,6 +45,9 @@ namespace VaultDebug.Runtime.Logger
             Container.Register<ILoggerProvider, LoggerProvider>(Lifetime.Singleton);
             Container.Register<ILogIdProvider, LogIdProvider>(Lifetime.Singleton);
 
+            var logDispatcher = Container.Resolve<IVaultLogDispatcher>();
+            logDispatcher.RegisterHandler(new UnityConsoleLogHandler());
+
             Debug.Log("DIBootstrapper: DIContainer initialized.");
         }
     }

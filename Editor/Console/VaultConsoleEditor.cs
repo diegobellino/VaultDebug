@@ -27,7 +27,7 @@ namespace VaultDebug.Editor.Console
         Dictionary<long, VisualElement> _logElementsById = new();
         HashSet<long> _expandedLogIds = new();
 
-        [MenuItem("Vault Debug/Console/Open Window")]
+        [MenuItem("Vault Debug/Console/(Testing) Open Window")]
         public static void CreateWindow()
         {
             var window = GetWindow(typeof(VaultConsoleEditor));

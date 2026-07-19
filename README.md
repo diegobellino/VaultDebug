@@ -1,6 +1,8 @@
 # Vault Debug
 
-Vault Debug is a comprehensive logging solution for Unity projects. It provides a robust runtime structured logging system with a lightweight dependency injection container, efficient log pooling, and an interactive Unity Editor Console for real-time log management.
+Vault Debug is a Unity structured-logging package with Unity Console output by default, log pooling, and an optional interactive Editor Console.
+
+For `VaultLogger` setup, log levels, context tags, colors, properties, and custom handlers, see [Runtime/Logger/README.md](Runtime/Logger/README.md).
 
 ---
 
@@ -31,14 +33,11 @@ Vault Debug is a comprehensive logging solution for Unity projects. It provides 
 
 ## Installation
 
-1. **Download the Package:**  
-   Download the Vault Debug Unity package from your preferred source or repository.
+1. **Add the Package:**
+   Add Vault Debug through Unity Package Manager, as an embedded package under `Packages/com.diegobellino.vaultdebug`, or from its repository URL.
 
-2. **Import the Package:**  
-   In Unity, go to **Assets > Import Package > Custom Package…** and select the Vault Debug package file.
-
-3. **Setup Complete:**  
-   Once imported, Vault Debug will automatically initialize its core systems through the `DIBootstrapper`.
+2. **Setup Complete:**
+   Vault Debug automatically initializes its core systems through `DIBootstrapper`.
 
 ---
 
@@ -70,7 +69,7 @@ public class ExampleUsage : MonoBehaviour
 You can run a benchmark to compare performance against Unity's logging system by navigating to Vault Debug > Console > Benchmark Logs
 
 > [!TIP]
-> Open the Vault Debug console first, otherwise you will not be able to see the Vault Logs, just the end result
+> VaultLogger writes to Unity Console by default. Open Vault Console only when you need filtering, stored properties, or export.
 
 Below is a table showcasing comparing the time it takes to log a specific amount of logs to Vault Debug and Unity Logs. Each value in the table is an average of 3 runs.
 
@@ -95,7 +94,7 @@ Instead of creating your own logger, it's easier to use the Vault Debug > Consol
 Vault Debug includes an interactive console for viewing and managing logs within the Unity Editor:
 
 - **Open the Console:**
-Navigate to Vault Debug > Console > Open Window in the Unity Editor menu.
+Navigate to Vault Debug > Console > (Testing) Open Window in the Unity Editor menu.
 
 - **Filtering & Searching:**
 Use the filter buttons to display logs by level (Info, Debug, Warn, Error). The search field supports text filtering and context-specific searches.
@@ -117,7 +116,7 @@ Use the Clear button to remove all logs from the current session.
 ## Editor Settings
 Access additional settings via Vault Debug > Settings to configure options such as:
 
-- Automatically opening the console on startup.
+- Automatically opening the console on startup (disabled by default).
 - Specifying the log export path.
 - Resetting editor preferences.
 

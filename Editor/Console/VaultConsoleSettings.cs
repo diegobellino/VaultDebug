@@ -23,7 +23,7 @@ namespace VaultDebug.Editor.Console
         {
             GUILayout.Label("VaultDebug Configuration", EditorStyles.boldLabel);
 
-            bool autoOpenConsole = EditorPrefs.GetBool(Consts.EditorPrefKeys.AUTO_OPEN_CONSOLE, true);
+            bool autoOpenConsole = EditorPrefs.GetBool(Consts.EditorPrefKeys.AUTO_OPEN_CONSOLE, false);
             string exportPath = EditorPrefs.GetString(Consts.EditorPrefKeys.EXPORT_PATH, Application.persistentDataPath);
 
             autoOpenConsole = EditorGUILayout.Toggle("Auto open Vault Console when opening unity", autoOpenConsole);

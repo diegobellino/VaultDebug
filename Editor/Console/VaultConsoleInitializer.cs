@@ -10,7 +10,7 @@ namespace VaultDebug.Editor.Console
     {
         static VaultConsoleInitializer()
         {
-            if (!EditorPrefs.GetBool("VaultDebug.AutoOpenConsole"))
+            if (!EditorPrefs.GetBool(Consts.EditorPrefKeys.AUTO_OPEN_CONSOLE, false))
             { 
                 return; 
             }
