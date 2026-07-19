@@ -5,6 +5,8 @@
   "description": "A high-performance logging system for Unity with structured logs, UI console, and filtering.",
   "unity": "2022.3",
   "dependencies": {
+    "com.unity.burst": "1.8.29",
+    "com.unity.collections": "2.6.6",
     "com.unity.nuget.newtonsoft-json": "3.2.2"
   },
   "author": {
@@ -13,5 +15,12 @@
     "url": "https://github.com/diegobellino/VaultDebug"
   },
   "keywords": ["logging", "debug", "console", "unity", "editor"],
+  "samples": [
+    {
+      "displayName": "ECS integration",
+      "description": "Burst-safe ISystem and IJobEntity VaultLogger usage. Requires com.unity.entities.",
+      "path": "Samples~/ECS"
+    }
+  ],
   "type": "tool"
 }

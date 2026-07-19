@@ -1,7 +1,4 @@
-﻿using AutoFixture;
-using AutoFixture.AutoMoq;
-using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using VaultDebug.Runtime.Logger;
 
 namespace VaultDebug.Tests.Editor.Logger
@@ -9,37 +6,36 @@ namespace VaultDebug.Tests.Editor.Logger
     [TestFixture]
     public class LoggerProviderTests
     {
-        private IFixture _fixture;
         private LoggerProvider _loggerProvider;
 
         [SetUp]
         public void Setup()
         {
-            _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _loggerProvider = new LoggerProvider();
+            _loggerProvider = new LoggerProvider(
+                DIBootstrapper.Container.Resolve<IVaultLogPool>(),
+                DIBootstrapper.Container.Resolve<IVaultLogDispatcher>());
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _loggerProvider.Dispose();
         }
 
         [Test]
-        public void GetLogger_ShouldReturnSameInstance()
+        public void GetLogger_CreatesBurstSafeValue()
         {
-            string context = _fixture.Create<string>();
-
-            var logger1 = _loggerProvider.GetLogger(context);
-            var logger2 = _loggerProvider.GetLogger(context);
-
-            Assert.AreSame(logger1, logger2);
+            Assert.DoesNotThrow(() => _loggerProvider.GetLogger("Gameplay"));
         }
 
         [Test]
-        public void GetLogger_ShouldReturnDifferentInstancesForDifferentContexts()
+        public void GetLogger_AcceptsIndependentContexts()
         {
-            string context1 = _fixture.Create<string>();
-            string context2 = _fixture.Create<string>();
-
-            var logger1 = _loggerProvider.GetLogger(context1);
-            var logger2 = _loggerProvider.GetLogger(context2);
-
-            Assert.AreNotSame(logger1, logger2);
+            Assert.DoesNotThrow(() =>
+            {
+                _loggerProvider.GetLogger("Gameplay");
+                _loggerProvider.GetLogger("Physics");
+            });
         }
     }
 

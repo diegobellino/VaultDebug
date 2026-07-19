@@ -7,11 +7,18 @@ namespace VaultDebug.Runtime.Logger
     /// <summary>
     /// A MonoBehaviour that dispatches actions on the main thread.
     /// </summary>
+    [ExecuteAlways]
     public class VaultDebugLoggerMainThreadDispatcher : MonoBehaviour
     {
         private static readonly ConcurrentQueue<Action> _executionQueue = new();
         private static VaultDebugLoggerMainThreadDispatcher _instance;
         private static Action<GameObject> _dontDestroyOnLoad = obj => DontDestroyOnLoad(obj);
+
+        /// <summary>Invoked once per frame on the Unity main thread.</summary>
+        public static event Action MainThreadUpdate;
+
+        /// <summary>Invoked before the dispatcher is destroyed.</summary>
+        public static event Action MainThreadShutdown;
 
         /// <summary>
         /// Gets the main thread dispatcher instance, creating it if necessary.
@@ -25,9 +32,9 @@ namespace VaultDebug.Runtime.Logger
                 var obj = new GameObject("VaultDebugLoggerMainThreadDispatcher");
                 _instance = obj.AddComponent<VaultDebugLoggerMainThreadDispatcher>();
 
-                if (dontDestroyOverride == null)
+                if (dontDestroyOverride == null && Application.isPlaying)
                     _dontDestroyOnLoad(obj);
-                else
+                else if (dontDestroyOverride != null)
                     dontDestroyOverride(obj); // Mocked for testing
             }
             return _instance;
@@ -48,6 +55,18 @@ namespace VaultDebug.Runtime.Logger
             {
                 action?.Invoke();
             }
+
+            MainThreadUpdate?.Invoke();
+        }
+
+        private void OnDestroy()
+        {
+            if (Application.isPlaying)
+            {
+                MainThreadShutdown?.Invoke();
+            }
+
+            _instance = null;
         }
     }
 }

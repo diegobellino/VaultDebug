@@ -55,11 +55,13 @@ namespace VaultDebug.Tests.Editor.Logger
         [Test]
         public void VaultLogger_WritesToUnityConsoleByDefault()
         {
-            var logger = new VaultLogger("TestContext");
+            var provider = (LoggerProvider)DIBootstrapper.Container.Resolve<ILoggerProvider>();
+            var logger = provider.GetLogger("TestContext");
 
             LogAssert.Expect(LogType.Log, new Regex(@"^\[TestContext\] Test message$"));
 
             logger.Info("Test message");
+            provider.Drain();
         }
 
         static VaultLog CreateLog(LogLevel level, Color? color = null)

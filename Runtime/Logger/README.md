@@ -11,7 +11,7 @@ When logger has color, only `[Gameplay]` tag is colored. Message remains uncolor
 ## Quick start
 
 ```csharp
-using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using VaultDebug.Runtime.Logger;
 
@@ -20,34 +20,31 @@ public class PlayerSpawner : MonoBehaviour
     void Start()
     {
         var loggerProvider = DIBootstrapper.Container.Resolve<ILoggerProvider>();
-        var logger = loggerProvider.GetLogger("Gameplay", Color.cyan);
+        var logger = loggerProvider.GetLogger("Gameplay", Color.cyan, maxProperties: 6);
 
         logger.Info("Player spawned.");
         logger.Debug("Spawn point selected.");
         logger.Warn("Spawn point is occupied.");
-        logger.Error(
-            "Player spawn failed.",
-            new Dictionary<string, object>
-            {
-                { "playerId", 42 },
-                { "spawnPoint", "NorthGate" }
-            });
+        VaultLogProperties properties = default;
+        properties.TryAdd("playerId", 42);
+        properties.TryAdd("spawnPoint", new FixedString128Bytes("NorthGate"));
+        logger.Error(new FixedString512Bytes("Player spawn failed."), properties);
     }
 }
 ```
 
-`DIBootstrapper` initializes automatically in normal Unity usage. `ILoggerProvider` caches one logger per context; pass color when first requesting context.
+`DIBootstrapper` initializes automatically in normal Unity usage. `ILoggerProvider` creates value-type loggers that can be copied into jobs; pass the color when creating a logger.
 
-## Log methods
+## Burst and structured log methods
 
 | Method | Unity Console output |
 | --- | --- |
-| `Info(message, properties?)` | Log |
-| `Debug(message, properties?)` | Log |
-| `Warn(message, properties?)` | Warning |
-| `Error(message, properties?)` | Error |
+| `Info(FixedString512Bytes, VaultLogProperties)` | Log |
+| `Debug(FixedString512Bytes, VaultLogProperties)` | Log |
+| `Warn(FixedString512Bytes, VaultLogProperties)` | Warning |
+| `Error(FixedString512Bytes, VaultLogProperties)` | Error |
 
-`properties` and timestamps stay on `IVaultLog` for other handlers, but Unity Console output currently ignores them.
+`VaultLogger` is Burst-safe when called with `FixedString` values. It queues records in native memory and forwards them to handlers on the Unity main thread. `VaultLogProperties` can hold up to eight typed properties (`string`, `long`, `double`, or `bool`); use `TryAdd` and handle `false` when the fixed payload is full. Configure each logger's retained property count with `maxProperties` (zero through eight). The record always reserves storage for eight fields so it remains an unmanaged, fixed-size Burst value. The main-thread adapter exposes retained fields as `IVaultLog.Properties`; Unity Console output ignores them. Caller stack traces are not captured.
 
 ## Vault Console
 

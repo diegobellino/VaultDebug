@@ -12,7 +12,7 @@ For `VaultLogger` setup, log levels, context tags, colors, properties, and custo
   Log messages at various levels (Info, Debug, Warn, Error, Exception) to help you monitor and debug your application.
 
 - **Structured logging:**  
-  Vault Debug includes structured logs by default. Simply add properties in a `IDictionary<string,object>` to your logs. They will automatically show in the Vault Console and be ready to implement any logic over them on your log handler implementations.
+  Vault Debug includes Burst-safe structured logs. Add up to eight typed fixed-size fields (`string`, `long`, `double`, or `bool`) through `VaultLogProperties`; each logger can retain a configured lower limit.
   
 - **Lightweight Dependency Injection:**  
   Uses a simple DI container (via the `DIBootstrapper`) to register and resolve core components, making it easy to extend or replace dependencies.
@@ -45,7 +45,7 @@ For `VaultLogger` setup, log levels, context tags, colors, properties, and custo
 
 ### Initializing the Logger
 
-Vault Debug uses a lightweight DI container to automatically register core dependencies. To start logging, simply create a new logger instance with your desired context:
+Vault Debug uses a lightweight DI container to automatically register core dependencies. Resolve a provider and create a value-type logger for the desired context:
 
 ```csharp
 using VaultDebug.Runtime.Logger;
@@ -54,8 +54,9 @@ public class ExampleUsage : MonoBehaviour
 {
     void Start()
     {
-        // Create a logger for the current context.
-        var logger = new VaultLogger("ExampleContext");
+        var logger = DIBootstrapper.Container
+            .Resolve<ILoggerProvider>()
+            .GetLogger("ExampleContext");
         
         // Log an informational message.
         logger.Info("Vault Debug initialized successfully.");
@@ -104,7 +105,7 @@ Use the filter buttons to display logs by level (Info, Debug, Warn, Error). The 
 - **Log details:**
 Click on any log in the Vault Console to see all its information, including:
    - Full log
-   - Stacktrace (smart or raw)
+   - Stacktrace (empty for Burst-safe logger records)
    - Properties (for structured logs)
 
 - **Exporting Logs:**
@@ -125,7 +126,7 @@ Access additional settings via Vault Debug > Settings to configure options such 
 Initializes the dependency injection container and registers core dependencies (e.g., log pool, dispatcher, logger provider).
 
 - **VaultLogger:**
-The primary class used for logging messages. Offers methods like Info(), Debug(), Warn(), and Error().
+The primary Burst-safe value type used for logging messages. It can be copied into jobs and offers `Info()`, `Debug()`, `Warn()`, and `Error()`.
 
 - **VaultLogPool:**
 Manages a pool of reusable log objects to optimize memory usage. By default the log pool will allow 1000 elements. 
@@ -164,6 +165,9 @@ Modify the UI and behavior of the Vault Console Editor to suit your project's ne
 - `Assertion failed` generates aVisual issues in the Vault Console when displaying logs while UIToolkit windows are open
 
 ## Dependencies
+- **Unity Collections and Burst:**
+For fixed-size data, native queue transport, and Burst-compatible logger calls.
+
 - **Newtonsoft.Json:**
 For JSON serialization and deserialization of log data.
 

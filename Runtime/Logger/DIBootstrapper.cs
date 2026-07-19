@@ -42,10 +42,11 @@ namespace VaultDebug.Runtime.Logger
             // Register common dependencies.
             Container.Register<IVaultLogPool, VaultLogPool>(Lifetime.Singleton);
             Container.Register<IVaultLogDispatcher, VaultLogDispatcher>(Lifetime.Singleton);
-            Container.Register<ILoggerProvider, LoggerProvider>(Lifetime.Singleton);
             Container.Register<ILogIdProvider, LogIdProvider>(Lifetime.Singleton);
 
             var logDispatcher = Container.Resolve<IVaultLogDispatcher>();
+            var loggerRuntime = new LoggerProvider(Container.Resolve<IVaultLogPool>(), logDispatcher);
+            Container.RegisterInstance<ILoggerProvider>(loggerRuntime);
             logDispatcher.RegisterHandler(new UnityConsoleLogHandler());
 
             Debug.Log("DIBootstrapper: DIContainer initialized.");

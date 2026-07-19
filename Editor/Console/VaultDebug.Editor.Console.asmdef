@@ -2,7 +2,8 @@
     "name": "VaultDebug.Editor.Console",
     "rootNamespace": "VaultDebug.Editor.Console",
     "references": [
-        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec"
+        "GUID:8ce0b3fa5ccca5d40993303ffa8faaec",
+        "GUID:e0cd26848372d4e5c891c569017e11f1"
     ],
     "includePlatforms": [
         "Editor"
